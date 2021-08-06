@@ -282,9 +282,9 @@ local DefaultPreference = function(name, value)
     end
 end
 DefaultPreference("VideoWidth", 480)
-DefaultPreference("VideoHeight", 300)
+DefaultPreference("VideoHeight", 272)
 DefaultPreference("VideoShader", "none")
-DefaultPreference("VideoFullScreen", false)
+DefaultPreference("VideoFullScreen", true)
 DefaultPreference("PlayerName", "Player")
 DefaultPreference("FogOfWar", false)
 DefaultPreference("ShowCommandKey", true)
@@ -313,11 +313,13 @@ DefaultPreference("ShowOrders", true)
 DefaultPreference("OnlineServer", "network.stratagus.de")
 DefaultPreference("OnlinePort", 6112)
 DefaultPreference("SimplifiedAutoTargeting", true)
-DefaultPreference("FogOfWarType", "enhanced")      -- "enhanced" or "legacy". Legacy type of FOW doesn't work with shadow casting FOV.
+DefaultPreference("FogOfWarType", "legacy")      -- "enhanced" or "legacy". Legacy type of FOW doesn't work with shadow casting FOV.
 DefaultPreference("FogOfWarBilinear", false)       -- Enable/Disable bilinear filtration for fog of war
 DefaultPreference("DungeonSightBlocking", true)    -- Enable/Disable sight blocking in the dungeons
 DefaultPreference("FieldOfViewType", "simple-radial")    -- default field of view type (possibe values: "simple-radial" and "shadow-casting" )
 DefaultPreference("RebalancedStats", true)
+DefaultPreference("ControllerSpeed", 10)
+DefaultPreference("BilinearFilter", false)
 
 wc1.preferences = preferences
 
@@ -424,9 +426,11 @@ end)
 
 SetVideoResolution(preferences.VideoWidth, preferences.VideoHeight)
 local pixelScale = 1.2
-if preferences.VideoWidth < 640 then
-   SetWindowSize(preferences.VideoWidth * 2, preferences.VideoHeight * 2 * pixelScale)
-end
+--if preferences.VideoWidth < 640 then
+--   SetWindowSize(preferences.VideoWidth * 2, preferences.VideoHeight * 2 * pixelScale)
+--end
+SetControllerSpeed(preferences.ControllerSpeed)
+SetBilinearFilter(preferences.BilinearFilter)
 SetVerticalPixelSize(pixelScale) -- WC1 uses non-square pixels: graphics are 320x200, but rendered 320x240
 SetVideoFullScreen(preferences.VideoFullScreen)
 SetLocalPlayerName(preferences.PlayerName)

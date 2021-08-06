@@ -354,11 +354,9 @@ function BuildVideoOptionsMenu()
      "480x300 (1.5x)",
      "640x400 (2x)",
      "800x500 (2.5x)",
-     "960x600 (3x)",
-     "1280x800 (4x)",
-     "480x270 (1.5x wide)",
+     "480x272 (1.5x wide)",
      "640x360 (2x wide)",
-     "960x540 (3x wide)"
+     "960x544 (3x wide)"
   }
   resolution = menu:addDropDown(resolutions, offx + 125, offy + top,
     function(dd)
