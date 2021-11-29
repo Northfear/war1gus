@@ -39,8 +39,8 @@ local info_panel_x = 2
 local info_panel_y = 70
 local info_panel_w = 64
 
-local min_damage = Div(ActiveUnitVar("PiercingDamage"), 2)
-local max_damage = Add(ActiveUnitVar("PiercingDamage"), ActiveUnitVar("BasicDamage"))
+local min_damage = Add(Div(ActiveUnitVar("PiercingDamage"),2), Add(Div(ActiveUnitVar("BasicDamage"), 2),1))
+local max_damage = Add(ActiveUnitVar("PiercingDamage"), Max(ActiveUnitVar("BasicDamage"), 1))
 local function ttlpercent()
    local ttlp = GetUnitVariable(-1, "TTLPercent")
    if ttlp > 0 then
@@ -73,7 +73,7 @@ DefinePanelContents(
       Ident = "panel-general-contents",
       Pos = {info_panel_x, info_panel_y}, DefaultFont = "small",
       Contents = {
-         { Pos = {life_bar_off_x, 21}, Condition = {ShowOpponent = false, HideNeutral = true},
+         { Pos = {life_bar_off_x, 21}, Condition = {ShowOpponent = true, HideNeutral = true},
            More = {"LifeBar", {Variable = "HitPoints", Height = 3, Width = 27, Border = false,
                                Colors = {{75, "green"}, {50, "yellow"}, {25, "orange"}, {0, "red"}}}
            }
@@ -108,22 +108,22 @@ DefinePanelContents(
       Ident = "panel-all-unit-contents",
       Pos = {info_panel_x, info_panel_y},
       DefaultFont = "small",
-      Condition = {ShowOpponent = false, HideNeutral = true, Building = "false", Build = "false"},
+      Condition = {ShowOpponent = true, HideNeutral = true, Building = "false", Build = "false"},
       Contents = {
          { Pos = first_line,
            More = {"FormattedText2", {Format = "HP:%d/%d", Variable = "HitPoints", Component1 = "Value", Component2 = "Max"}}
          },
-         { Pos = second_line, Condition = {CanAttack = "only"},
+         { Pos = second_line, Condition = {ShowOpponent = true, CanAttack = "only"},
            More = {"Text", {Text = Concat("DMG:", String(min_damage), "-", String(max_damage))}}
          },
          { Pos = third_line,
            More = {"Text", {Text = "ARM:", Variable = "Armor", Stat = true}}
          },
-         { Pos = fourth_line, Condition = {CanAttack = "only", AttackRange = "only"},
+         { Pos = fourth_line, Condition = {ShowOpponent = true, CanAttack = "only", AttackRange = "only"},
            More = {"Text", {Text = "RNG:", Variable = "AttackRange" , Stat = true}}
          },
          -- Mana
-         { Pos = {36, 10}, Condition = {Mana = "only"},
+         { Pos = {36, 10}, Condition = {ShowOpponent = true, Mana = "only"},
            More = {"LifeBar", {Variable = "Mana", Height = 3, Width = 27, Border = false, Colors = {{0, "light-blue"}}}}
          },
          -- Summoned units
@@ -306,7 +306,7 @@ UI.Resources[2].TextY = 1
 UI.Resources[2].Font = Fonts["game"]
 
 -- mana -- no good icon, but we need this for the info bar
-UI.Resources[ManaResCost].G = CGraphic:New("missiles/healing.png", 16, 16)
+UI.Resources[ManaResCost].G = CGraphic:New("contrib/graphics/ui/mana_icon_1.png", 9,9)
 UI.Resources[ManaResCost].IconFrame = 0
 UI.Resources[ManaResCost].IconX = -50
 UI.Resources[ManaResCost].IconY = -50
@@ -441,7 +441,7 @@ function LoadUI(race, screen_width, screen_height)
    UI.Fillers:clear()
    AddFiller("ui/" .. race .. "/minimap.png", 0, 0, 72, 72)
    AddFiller("ui/" .. race .. "/left_panel.png", 0, 72, 72, Video.Height - (200 - 128))
-   AddFiller("ui/" .. race .. "/top_resource_bar.png", 72, 0, Video.Width - (320 - 240), 12)
+   AddFiller("contrib/graphics/ui/" .. race .. "/top_resource_bar.png", 72, 0, Video.Width - (320 - 240), 12)
    AddFiller("ui/" .. race .. "/right_panel.png", Video.Width - 8, 0, 8, Video.Height)
    AddFiller("ui/" .. race .. "/bottom_panel.png", 72, Video.Height - 12, Video.Width - (320 - 240), 12)
 
@@ -483,7 +483,7 @@ if (wc1.preferences.ShowButtonPopups) then
          BackgroundColor = PopupBackgroundColor,
          BorderColor = PopupBorderColor,
          Contents = {
-            { 	Margin = {1, 1}, HighlightColor = "red",
+            { 	Margin = {1, 1}, HighlightColor = "yellow",
                 More = {"ButtonInfo", {InfoType = "Hint", Font = PopupFont}}
             },
             -- Move  hint

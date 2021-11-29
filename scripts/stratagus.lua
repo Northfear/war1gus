@@ -120,6 +120,12 @@ SetRevelationType("all-units")
 
 SetFogOfWarBlur(2.0, 1.5, 3) -- radiuses for simple and bilinear FOW postprocessing, number of blur iterations
 
+-- Set opacity levels of fog for explored, "known"(when map revealed) and hidden tiles
+SetFogOfWarOpacityLevels(0x7F, 0xBE, 0xFE)
+
+-- Set opacity levels of fog for explored, "known"(when map revealed) and hidden tiles in the minimap
+SetMMFogOfWarOpacityLevels(0x55, 0xAA, 0xFF) -- default values
+
 -------------------------------------------------------------------------------
 
 --  If you prefer fighters are attacking by right clicking empty space
@@ -175,9 +181,6 @@ SetHoldClickDelay(1000)
 --SetShowCommandKey(true) this preferences
 --SetShowCommandKey(false)
 
---  Uncomment next, to reveal the complete map.
--- RevealMap()
-
 --  Choose your default fog of war state (enabled #t/disabled #f).
 --    disabled is a C&C like fog of war.
 SetFogOfWar(true)
@@ -190,8 +193,9 @@ SetFogOfWarGraphics("tilesets/forest/fog.png")
 SetMinimapTerrain(true)
 --SetMinimapTerrain(false)
 
---  Set Fog of War opacity
-SetFogOfWarOpacity(128)
+
+-- Make grayscale icons for cooldown
+Preference.GrayscaleIcons = true
 
 -------------------------------------------------------------------------------
 
@@ -313,7 +317,7 @@ DefaultPreference("ShowOrders", true)
 DefaultPreference("OnlineServer", "network.stratagus.de")
 DefaultPreference("OnlinePort", 6112)
 DefaultPreference("SimplifiedAutoTargeting", true)
-DefaultPreference("FogOfWarType", "legacy")      -- "enhanced" or "legacy". Legacy type of FOW doesn't work with shadow casting FOV.
+DefaultPreference("FogOfWarType", "fast")      -- "enhanced", "tiled" or "fast". Tiled and fast types of FOW don't work with shadow casting FOV.
 DefaultPreference("FogOfWarBilinear", false)       -- Enable/Disable bilinear filtration for fog of war
 DefaultPreference("DungeonSightBlocking", true)    -- Enable/Disable sight blocking in the dungeons
 DefaultPreference("FieldOfViewType", "simple-radial")    -- default field of view type (possibe values: "simple-radial" and "shadow-casting" )
