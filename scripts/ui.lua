@@ -54,16 +54,19 @@ UI.InfoPanel.X = info_panel_x
 UI.InfoPanel.Y = info_panel_y
 
 local life_bar_off_x = 36
-local info_text_off_x = 3
+local info_text_off_x = 1
 
 local first_line = {info_text_off_x, 35}
 local second_line = {info_text_off_x, 41}
-local third_line = {(info_text_off_x * 2) + (info_panel_w / 2) + 2, 35}
-local fourth_line = {(info_text_off_x * 2) + (info_panel_w / 2) + 2, 41}
+local third_line = {(info_text_off_x * 2) + (info_panel_w / 2) + 7, 35}
+local fourth_line = {(info_text_off_x * 2) + (info_panel_w / 2) + 7, 41}
+
+CompleteBarText = CGraphic:New("ui/percent_complete.png", 40, 5)
+CompleteBarText:Load()
 
 local function MakeCompleteBar(condition, variable)
    return { Pos = {1, 36}, Condition = condition,
-            More = {"CompleteBar", {Variable = variable, Width = 62, Height = 7, Color = "green", Border = true}}
+            More = {"CompleteBar", {Variable = variable, Width = 61, Height = 7, Color = "green", Border = true}}
    }
 end
 
@@ -73,8 +76,13 @@ DefinePanelContents(
       Ident = "panel-general-contents",
       Pos = {info_panel_x, info_panel_y}, DefaultFont = "small",
       Contents = {
-         { Pos = {life_bar_off_x, 21}, Condition = {ShowOpponent = true, HideNeutral = true},
+         { Pos = {life_bar_off_x, 21}, Condition = {HideAllied = false, ShowOpponent = false, HideNeutral = true},
            More = {"LifeBar", {Variable = "HitPoints", Height = 3, Width = 27, Border = false,
+                               Colors = {{75, "green"}, {50, "yellow"}, {25, "orange"}, {0, "red"}}}
+           }
+         },
+         { Pos = {life_bar_off_x, 21}, Condition = {HideAllied = true, ShowOpponent = true, HideNeutral = true},
+           More = {"LifeBar", {Variable = "HitPoints", Height = 3, Width = 27, Border = 0x9b9b9b,
                                Colors = {{75, "green"}, {50, "yellow"}, {25, "orange"}, {0, "red"}}}
            }
          },
@@ -123,8 +131,11 @@ DefinePanelContents(
            More = {"Text", {Text = "RNG:", Variable = "AttackRange" , Stat = true}}
          },
          -- Mana
-         { Pos = {36, 10}, Condition = {ShowOpponent = true, Mana = "only"},
+         { Pos = {36, 10}, Condition = {HideAllied = false, ShowOpponent = true, HideNeutral = true, Mana = "only"},
            More = {"LifeBar", {Variable = "Mana", Height = 3, Width = 27, Border = false, Colors = {{0, "light-blue"}}}}
+         },
+         { Pos = {36, 10}, Condition = {HideAllied = true, ShowOpponent = true, HideNeutral = true, Mana = "only"},
+           More = {"LifeBar", {Variable = "Mana", Height = 3, Width = 27, Border = 0x9b9b9b, Colors = {{0, "light-blue"}}}}
          },
          -- Summoned units
          { Pos = {36, 10},
@@ -152,26 +163,73 @@ DefinePanelContents(
          MakeCompleteBar({Build = "only"}, "Build"),
          MakeCompleteBar({Research = "only"}, "Research"),
          MakeCompleteBar({Training = "only"}, "Training"),
-         MakeCompleteBar({UpgradeTo = "only"}, "UpgradeTo")
+         MakeCompleteBar({UpgradeTo = "only"}, "UpgradeTo"),
+         { Pos = {13, 37}, Condition = {Build = "only"}, More = {"Graphic", "ui/percent_complete.png"} },
+         { Pos = {13, 37}, Condition = {Research = "only"}, More = {"Graphic", "ui/percent_complete.png"} },
+         { Pos = {13, 37}, Condition = {Training = "only"}, More = {"Graphic", "ui/percent_complete.png"} },
+         { Pos = {13, 37}, Condition = {UpgradeTo = "only"}, More = {"Graphic", "ui/percent_complete.png"} },
       }
    }
 )
+
+DefineSprites({Name = "web", File = "contrib/graphics/missiles/missile-web.png", Offset = {0, 0}, Size = {32, 32}})
+
+DefineDecorations({Index = "Slow", ShowOpponent = true,
+  Offset = {-8, -8}, Method = {"static-sprite", {"web", 4}}
+})
+
+DefineSprites({
+   Name = "sprite-invisible",
+   File = "contrib/graphics/missiles/invisibility.png", Offset = {-4, -4}, Size = {25, 25}
+})
 
 DefineDecorations({
       Index = "Invisible", ShowOpponent = false,
       Offset = {0, 0},
       Method = {
-         "frame", {Thickness = 2, ColorName = "blue"}
+         "animated-sprite", {"sprite-invisible", 14}
       }
 })
 
+DefineSprites({
+   Name = "sprite-unholy",
+   File = "contrib/graphics/missiles/unholy.png", Offset = {-2, -2}, Size = {20, 20}
+})
+
 DefineDecorations({
-      Index = "UnholyArmor", ShowOpponent = false,
+      Index = "UnholyArmor", ShowOpponent = true,
       Offset = {0, 0},
       Method = {
-         "frame", {Thickness = 2, ColorName = "red"}
+         "animated-sprite", {"sprite-unholy", 8}
       }
 })
+DefineSprites({Name = "venom", File = "contrib/graphics/ui/icon-poison.png", Offset = {0, 0}, Size = {4,6}})
+
+DefineDecorations({
+   Index = "Poison", ShowOpponent = true,
+   Offset = {7, 2},
+   Method = 
+      {"static-sprite", {"venom", 0}}  
+})
+
+DefineSprites({Name = "woundmarker", File = "contrib/graphics/ui/icon-wound.png", Offset = {0, -7}, Size = {5, 6}})
+
+--DefineDecorations({Index = "HitPoints", HideNeutral = false, CenterX = true, ShowOpponent=true, Building = false,
+--	OffsetPercent = {50, 100}, Method = {"sprite", {"woundmarker"}}})
+
+-- DefineDecorations({Index = "HitPoints", HideNeutral=true, ShowOpponent=false, Building=false,
+-- 	OffsetPercent = {0, 100},
+--    Method = {"bar", {
+--       Orientation="horizontal",
+--       MinValue = 0,
+--       MaxValue = 30,
+--       Invert = true,
+--       BorderSize = 0,
+--       Height = 1,
+--       Width = 8,
+--       SEToNW = true
+--    }
+-- }})
 
 DefineCursor({
       Name = "cursor-point",
@@ -290,20 +348,35 @@ UI.ReverseFontColor = "yellow";
 -- gold
 UI.Resources[1].G = CGraphic:New("ui/gold_icon_1.png", 13, 6)
 UI.Resources[1].IconFrame = 0
-UI.Resources[1].IconX = Video.Width - 33 - 13
+UI.Resources[1].IconX = Video.Width - 137 - 9
 UI.Resources[1].IconY = 1
-UI.Resources[1].TextX = Video.Width - 33 - 13 - 40
+UI.Resources[1].TextX = Video.Width - 129 - 9 - 40
 UI.Resources[1].TextY = 1
 UI.Resources[1].Font = Fonts["game"]
 
 -- wood
 UI.Resources[2].G = CGraphic:New("ui/lumber_icon_1.png", 9, 9)
 UI.Resources[2].IconFrame = 0
-UI.Resources[2].IconX = Video.Width - 137 - 9
+UI.Resources[2].IconX = Video.Width - 55 - 13 - 13
 UI.Resources[2].IconY = 0
-UI.Resources[2].TextX = Video.Width - 129 - 9 - 40
+UI.Resources[2].TextX = Video.Width - 55 - 13 - 40
 UI.Resources[2].TextY = 1
 UI.Resources[2].Font = Fonts["game"]
+
+-- food
+UI.Resources[FoodCost].G = CGraphic:New("contrib/graphics/ui/icon-food.png",12, 9)
+UI.Resources[FoodCost].IconFrame = 0
+UI.Resources[FoodCost].IconX = Video.Width - 0 - 13 - 13
+UI.Resources[FoodCost].IconY = 0
+UI.Resources[FoodCost].TextX = Video.Width - 0 - 13 - 40
+UI.Resources[FoodCost].TextY = 1
+
+-- idle workers -- negative TextX values are used to indicate: only draw when we do have idle workers
+UI.Resources[FreeWorkersCount].TextX = -(Video.Width - 14 - 8 -20)
+UI.Resources[FreeWorkersCount].TextY = 28
+UI.Resources[FreeWorkersCount].IconX = Video.Width - 14 - 8 - 21
+UI.Resources[FreeWorkersCount].IconY = 16
+UI.Resources[FreeWorkersCount].IconFrame = 2
 
 -- mana -- no good icon, but we need this for the info bar
 UI.Resources[ManaResCost].G = CGraphic:New("contrib/graphics/ui/mana_icon_1.png", 9,9)
@@ -412,14 +485,13 @@ UI.MenuButton:SetCallback(
       end
 end)
 
-
-UI.NetworkMenuButton.X = 3
-UI.NetworkMenuButton.Y = 1
-UI.NetworkMenuButton.Text = "Menu"
-UI.NetworkMenuButton.Style = FindButtonStyle("network")
+UI.NetworkMenuButton.X = UI.MenuButton.X
+UI.NetworkMenuButton.Y = UI.MenuButton.Y
+UI.NetworkMenuButton.Text = UI.MenuButton.Text
+UI.NetworkMenuButton.Style = UI.MenuButton.Style
 UI.NetworkMenuButton:SetCallback(function() RunGameMenu() end)
 
-UI.NetworkDiplomacyButton.X = 45
+UI.NetworkDiplomacyButton.X = UI.Minimap.W + 6
 UI.NetworkDiplomacyButton.Y = 1
 UI.NetworkDiplomacyButton.Text = "Diplomacy"
 UI.NetworkDiplomacyButton.Style = FindButtonStyle("network")
@@ -435,6 +507,10 @@ UI.EditorButtonAreaTopLeft.y = UI.ButtonPanel.Y
 UI.EditorButtonAreaBottomRight.x = UI.MapArea.X
 UI.EditorButtonAreaBottomRight.y = UI.MenuButton.Y
 
+ForestFreeWorkerIcons = CGraphic:ForceNew("tilesets/forest/portrait_icons.png", 27, 19)
+DungeonFreeWorkerIcons = CGraphic:ForceNew("tilesets/dungeon/portrait_icons.png", 27, 19)
+SwampFreeWorkerIcons = CGraphic:ForceNew("tilesets/swamp/portrait_icons.png", 27, 19)
+
 function LoadUI(race, screen_width, screen_height)
    currentRace = race
    Load("scripts/widgets.lua")
@@ -449,6 +525,21 @@ function LoadUI(race, screen_width, screen_height)
    
    Preference.IconFrameG = CGraphic:New("ui/" .. race .. "/icon_border.png", 31, 24)
    Preference.PressedIconFrameG = CGraphic:New("ui/" .. race .. "/icon_border.png", 31, 24)
+
+   -- free workers
+   if war1gus.tileset == "forest" or war1gus.tileset == "forest_campaign" then
+      UI.Resources[FreeWorkersCount].G = ForestFreeWorkerIcons
+   elseif war1gus.tileset == "dungeon" or war1gus.tileset == "dungeon_campaign" then
+      UI.Resources[FreeWorkersCount].G = DungeonFreeWorkerIcons
+   else
+      UI.Resources[FreeWorkersCount].G = SwampFreeWorkerIcons
+   end
+   if race == "human" then
+      UI.Resources[FreeWorkersCount].IconFrame = 4
+   else
+      UI.Resources[FreeWorkersCount].IconFrame = 5
+   end
+
 
    local ui = {
       "info-panel", {
@@ -467,8 +558,8 @@ PopupFont = "small"
 local GetRGBA = function(r, g, b, a)
    return b + g*0x100 + r*0x10000 + a*0x1000000
 end
-local PopupBackgroundColor = GetRGBA(0,32,96, 208)
-local PopupBorderColor = GetRGBA(192,192,255, 160)
+PopupBackgroundColor = GetRGBA(0,32,96, 208)
+PopupBorderColor = GetRGBA(192,192,255, 160)
 
 if (wc1.preferences.ShowButtonPopups) then
    local OldDefineButton = DefineButton

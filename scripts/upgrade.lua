@@ -29,12 +29,12 @@
 --      $Id$
 
 local upgrades = {
-   {orc = {"axe1", {"grunt", "raider", "raider1", "raider2"}, "axe2"},
-    human = {"sword1", {"footman", "knight", "knight1", "knight2"}, "sword2"},
+   {orc = {"axe1", {"grunt", "raider"}, "axe2"},
+    human = {"sword1", {"footman", "knight"}, "sword2"},
     cost = {   120,   750,     0,     0,     0,     0,     0},
     modifier = {"PiercingDamage", 2}},
-   {orc = {"axe2", {"grunt", "raider", "raider1", "raider2"}, "axe3"},
-    human = {"sword2", {"footman", "knight", "knight1", "knight2"}, "sword3"},
+   {orc = {"axe2", {"grunt", "raider"}, "axe3"},
+    human = {"sword2", {"footman", "knight"}, "sword3"},
     cost = {   120,   1500,     0,     0,     0,     0,     0},
     modifier = {"PiercingDamage", 2},
     dependency = {orc = "axe1", human = "sword1"}},
@@ -49,12 +49,12 @@ local upgrades = {
     modifier = {"PiercingDamage", 1},
     dependency = {orc = "spear1", human = "arrow1"}},
 
-   {orc = {"orc-shield1", {"grunt", "raider", "raider1", "raider2"}, "orc-shield2"},
-    human = {"human-shield1", {"footman", "knight", "knight1", "knight2"}, "human-shield2"},
+   {orc = {"orc-shield1", {"grunt", "raider"}, "orc-shield2"},
+    human = {"human-shield1", {"footman", "knight"}, "human-shield2"},
     cost = {   120,   750,     0,     0,     0,     0,     0},
     modifier = {"Armor", 2}},
-   {orc = {"orc-shield2", {"grunt", "raider", "raider1", "raider2"}, "orc-shield3"},
-    human = {"human-shield2", {"footman", "knight", "knight1", "knight2"}, "human-shield3"},
+   {orc = {"orc-shield2", {"grunt", "raider"}, "orc-shield3"},
+    human = {"human-shield2", {"footman", "knight"}, "human-shield3"},
     cost = {   120,   1500,     0,     0,     0,     0,     0},
     modifier = {"Armor", 2},
     dependency = {orc = "orc-shield1", human = "human-shield1"}},
@@ -62,11 +62,11 @@ local upgrades = {
    {orc = {"wolves1", {"raider"}},
     human = {"horse1", {"knight"}},
     cost = {   140,   750,     0,     0,     0,     0,     0},
-    modifier = {"convert-to", {orc = "unit-raider1", human = "unit-knight1"}}},
-   {orc = {"wolves2", {"raider1"}},
-    human = {"horse2", {"knight1"}},
+    modifier = {"Speed", 1}},
+   {orc = {"wolves2", {"raider"}},
+    human = {"horse2", {"knight"}},
     cost = {   140,   1500,     0,     0,     0,     0,     0},
-    modifier = {"convert-to", {orc = "unit-raider2", human = "unit-knight2"}},
+    modifier = {"Speed", 1},
     dependency = {orc = "wolves1", human = "horse1"}},
 
    {orc = {"raise-dead", {"necrolyte"}},
@@ -98,11 +98,13 @@ for idx,spec in ipairs(upgrades) do
    DefineUpgradeFromSpec(spec)
 end
 
-function DefineAllowExtraUnits()
+function DefineAllowExtraUnits(allowWalls)
    DefineAllow("unit-gold-mine",           "AAAAAAAAAAAAAAAA")
    DefineAllow("unit-dungeon-entrance",    "AAAAAAAAAAAAAAAA")
    DefineAllow("unit-road",                "AAAAAAAAAAAAAAAA")
-   DefineAllow("unit-wall",                "AAAAAAAAAAAAAAAA")
+   if allowWalls then
+      DefineAllow("unit-wall",                "AAAAAAAAAAAAAAAA")
+   end
    DefineAllow("unit-dead-body",           "AAAAAAAAAAAAAAAA")
    DefineAllow("unit-destroyed-1x1-place",	"AAAAAAAAAAAAAAAA")
    DefineAllow("unit-destroyed-2x2-place",	"AAAAAAAAAAAAAAAA")
@@ -110,7 +112,7 @@ function DefineAllowExtraUnits()
    DefineAllow("unit-destroyed-4x4-place",	"AAAAAAAAAAAAAAAA")
 end
 
-DefineAllowExtraUnits()
+DefineAllowExtraUnits(true)
 
 DefineAllowOrcUnits = CreateAllowanceFunction("orc")
 DefineAllowOrcUnits("AAAAAAAAAAAAAAAA")
@@ -119,9 +121,9 @@ DefineAllowHumanUnits = CreateAllowanceFunction("human")
 DefineAllowHumanUnits("AAAAAAAAAAAAAAAA")
 
 InitFuncs:add(function()
-      if not war1gus.InCampaign then
-         DefineAllowOrcUnits("AAAAAAAAAAAAAAAA")
-         DefineAllowHumanUnits("AAAAAAAAAAAAAAAA")
-         DefineAllowExtraUnits()
-      end
+   if not war1gus.InCampaign then
+      DefineAllowOrcUnits("AAAAAAAAAAAAAAAA")
+      DefineAllowHumanUnits("AAAAAAAAAAAAAAAA")
+   end
+   DefineAllowExtraUnits(not war1gus.InCampaign)
 end)

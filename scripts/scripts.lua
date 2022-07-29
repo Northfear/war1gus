@@ -28,22 +28,10 @@
 --
 --      $Id$
 
--- Set the unit type graphics to the correct tileset
-table.foreach(
-   UnitTypeFiles,
-   function(k, v)
-      DefineUnitType(
-         k,
-         { Image = {"file", v[war1gus.tileset]} }
-      )
-   end
-)
+for i=1,table.getn(OnTilesetChangeFunctions) do
+    OnTilesetChangeFunctions[i]()
+end
 
-Load("scripts/icons.lua")
-
--- XXX: make sure walls and roads have their directions
-DefineUnitType("unit-wall", {NumDirections = 16, Flip = false})
-DefineUnitType("unit-road", {NumDirections = 16, Flip = false})
 -- Hardcoded unit-types, moved from Stratagus to games
 if war1gus.tileset == "dungeon_campaign" then
     UnitTypeHumanWall = UnitTypeByIdent("unit-wall");

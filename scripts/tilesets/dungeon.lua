@@ -35,107 +35,178 @@
 --
 local slots = {
    "special", {		-- Can't be in pud
-      "top-one-tree", 0, "mid-one-tree", 0, "bot-one-tree", 0,
-      "removed-tree", 0 },
+      "top-one-tree", 253, "mid-one-tree", 253, "bot-one-tree", 253,
+      "removed-tree", 300 },
    "solid", { "unused",
               {}},								-- 000
-   "solid", { "unused",
-              {}},								-- 010
    "solid", { "darkness", "water",
-              { 0x34 }},						-- 020
+              { 52, 0, 54, 55}},							-- 010
    "solid", { "unused",
-              {}},	-- 030
-   "solid", { "medium-earth", "land",
-              { 0xac, 0x85 }},	-- 040
-   "solid", { "dark-earth", "land",
-              { 0xaf, 0x70, 0xb3, 0x86, 0x87, 0x9d }},	-- 050
-   "solid", { "light-earth", "land",
-              { 0xe9, 0x9b }},	-- 060
-   "solid", { "forest", "land", "forest", "unpassable",
-              { 0 }},							-- 070
+              { }},	                      
+   "solid", { "earth", "land",
+              { 175, 106,  0, 112, 134, 135, 157, 158, 179 }},	    
+   "solid", { "treasure", "land", "cost4", "unpassable", "non-mixing", -- cost4 == treasure in our case
+              { 253, 90, 91 }},	    
+   "solid", { "light-earth", "land",   --this is the sun on the floor, enteraing the dungeon 
+              { 247 }},	             
+   "solid", { "dim", "land",
+              { 109,170}},							 
+   "solid", { "bright", "land",
+              { 172, 236, 0, 132, 133 }},
+   "solid", { "brighter", "land",
+              { 233, 231, 0, 155, 156 }},			   
+   "solid", { "stone-floor", "land",
+              { 75, 76, 77, 300, 0, 200, 201, 202, 203, 279, 280, 281, 283}},				
+   -- after 0 are decorations, used with filler
+   "solid", { "rug", "land", "no-building",
+              { 144, 0, 210 }},			    -- 0A0
    "solid", { "unused",
-              { }},						-- 080
-   "solid", { "stone-floor", "land", "no-building",
-              { 0x4b }},					-- 090
+              {}},					        -- 0B0
    "solid", { "unused",
-              {}},					-- 0A0
+              {}}, 				       		-- 0C0
    "solid", { "unused",
-              {}},					-- 0B0
+              {}},							-- 0D0				
    "solid", { "unused",
-              {}},					-- 0C0
+              {}},							-- 0E0
    "solid", { "unused",
-              {}},								-- 0D0
-   "solid", { "unused",
-              {}},								-- 0E0
-   "solid", { "unused",
-              {}},								-- 0F0
-   "mixed", { "dark-earth", "darkness", "land", "unpassable", "no-building",
-              { 0xb6 },							-- 100
-              { 0xb4 },							-- 110
-              { 0xcd, 0xce },							-- 120
-              { 0x38 },							-- 130
-              { 0x89, 0xa0 },							-- 140
-              { 0 },							-- 150
-              { 0xb5 },							-- 160
-              { 0x44 },							-- 170
-              { 1 },							-- 180
-              { 0x88, 0x9f },							-- 190
-              { 0x8a },							-- 1A0
-              { 0x45 },							-- 1B0
-              { 0x61 },							-- 1C0
-              { 0x60 },							-- 1D0
-              {},									-- 1E0
-              {}},								-- 1F0
-   "mixed", { "dark-earth", "medium-earth", "land",
-              { 0xc6 },							-- 200
-              { 0xc4 },							-- 210
-              { 0xc5 },							-- 220
-              { 0x9a },							-- 230
-              { 0xb0 },							-- 240
-              { 2 },							-- 250 -- what?
-              { 0x95 },							-- 260
-              { 0xc3 },							-- 270
-              { 3 },							-- 280 -- what?
-              { 0xa3 },							-- 290
-              { 0x97 },							-- 2A0
-              { 0xc2 },							-- 2B0
-              { 0x99 },							-- 2C0
-              { 0xad },							-- 2D0
-              {},									-- 2E0
+              { }},				  			-- 0F0
+			  
+	--you cannot use the same tile twice	
+   "mixed", { "earth", "darkness", "water",
+              { 182 },							-- 100 upper left dark
+              { 204 },							-- 110 upper right dark
+        { 206, 205 },                		-- 120 upper half dark
+              { 72 },							-- 130 lower left dark
+        { 137, 116, 160 },                   		-- 140 left half dark
+					{ 180 },							-- 150 upper left, lower right dark
+              { 181 },							-- 160 lower right wall
+              { 67 },							-- 170 lower right dark
+					{ 207 },							-- 180 upper left, lower right wall
+        { 136, 113, 159 },							-- 190 right half dark 
+              { 138 },							-- 1A0 lower left wall
+        { 69,70 },						-- 1B0 upper half wall
+              { 115, 97 },							-- 1C0 upper right wall
+              { 114, 96 },							-- 1D0 upper left wall
+              {},								-- 1E0
+              {}},	
+  -- "mixed", { "darkness", "stone-floor", "water", -- CTD when you go from earth to stone floor
+    --          { 313},							-- 100 upper left dark
+      --        { 316 },							-- 110 upper right dark
+        --      { 242, 243 },                		-- 120 upper half dark
+          --    { 328 },							-- 130 lower left dark
+            --  { 321 },                    		-- 140 left half dark
+				--	{ 327},							-- 150 upper left, lower right dark
+              --{ 240 },							-- 160 lower right wall
+              --{ 329 },							-- 170 lower right dark
+		--			{ 330},							-- 180 upper left, lower right wall
+          --    { 322 },							-- 190 right half dark
+            --  { 245},							-- 1A0 lower left wall
+            --  { 336 },							-- 1B0 upper half wall
+             -- { 335 },							-- 1C0 upper right wall
+             -- { 337 },							-- 1D0 upper left wall
+              --{},								-- 1E0
+              --{}},				  				-- 1F0
+   "mixed", { "earth", "light-earth", "land",
+              { 140 },							-- 200 upper left earth
+              { 141 },							-- 210 upper right earth
+              { 224 },							-- 220 upper half earth
+              { 162 },							-- 230 lower left earth
+              { 246 },							-- 240 left half earth
+					{ 161 },							-- 250 upper left, lower right earth              
+			  { 223 },   						-- 260 lower right light
+			  { 163 },							-- 270 lower right earth
+					{ 164 },							-- 280 upper left, lower right light
+              { 248 },							-- 290 right half earth
+              { 225 },							-- 2A0 lower left light
+              { 184 },							-- 2B0 upper half light
+              { 183 },							-- 2C0 upper right light
+              { 186 },							-- 2D0 upper left light
+              {},								-- 2E0
               {}},								-- 2F0
-   "mixed", { "light-earth", "medium-earth", "land",
-              { 0xd5 },							-- 300
-              { 0xd7 },							-- 310
-              { 0xd6 },							-- 320
-              { 0xfe },							-- 330
-              { 0xed },							-- 340
-              { 4 },							-- 350
-              { 0x84 },							-- 360
-              { 0xd9 },							-- 370
-              { 5 },							-- 380
-              { 0xda },							-- 390
-              { 0x101 },							-- 3A0
-              { 0xeb },							-- 3B0
-              { 0x9c },							-- 3C0
-              { 0x100 },							-- 3D0
-              {},									-- 3E0
-              {}},								-- 3F0
-   "mixed", { "stone-floor", "dark-earth", "land", "no-building",
-              { 0x7d },							-- 400
-              { 0x7b },							-- 410
-              { 0x7c },							-- 420
-              { 0x50 },							-- 430
-              { 0x66 },	-- 440
-              { 0x51 },							-- 450
-              { 0x92 },								-- 460
-              { 0x4e },							-- 470
-              { 0x9e },							-- 480
-              { 0x67 },							-- 490
-              { 0x95 },								-- 4A0
-              { 0x94 },							-- 4B0
-              { 0x4f },								-- 4C0
-              { 0xc0 },								-- 4D0
-              {},									-- 4E0
+   "mixed", { "earth", "dim", "land",
+              { 128 },							-- 200 upper left earth
+              { 126 },							-- 210 upper right earth
+              { 86, 127 },						-- 220 upper half earth
+              { 84 },							-- 230 lower left earth
+              { 108, 107},						-- 240 left half earth
+					{ 305},							-- 250 upper left, lower right earth
+              { 85 },   						-- 260 lower right light
+              { 82 },							-- 270 lower right earth
+					{ 306 },							-- 280 upper left, lower right light
+              { 110, 105 },						-- 290 right half earth
+              { 87 },							-- 2A0 lower left light
+              { 130, 83 },						-- 2B0 upper half light
+              { 129 } ,							-- 2C0 upper right light
+              { 131 },							-- 2D0 upper left light
+              {},								-- 2E0
+              {}},								-- 2F0
+   "mixed", { "earth", "bright", "land",
+              { 198 },							-- 200 upper left earth
+              { 196 },							-- 210 upper right earth
+              { 150, 197 },						-- 220 upper half earth
+              { 193 },							-- 230 lower left earth
+              { 171, 176 },						-- 240 left half earth
+					{ 272},							-- 250 upper left, lower right earth
+              { 149 },   						-- 260 lower right light
+              { 195 },							-- 270 lower right earth
+					{ 273 },							-- 280 upper left, lower right light
+              { 173, 174 },						-- 290 right half earth
+              { 151},							-- 2A0 lower left light
+              { 153, 194 },						-- 2B0 upper half light
+              { 154 },							-- 2C0 upper right light
+              { 152 },							-- 2D0 upper left light
+              {},								-- 2E0
+              {}},								-- 2F0		
+   "mixed", { "bright", "brighter", "land",
+              { 259 },							-- 200 upper left earth
+              { 257 },							-- 210 upper right earth
+              { 214, 258 },						-- 220 upper half earth
+              { 254 },							-- 230 lower left earth
+              { 232, 237 },						-- 240 left half earth
+					{ 296},							-- 250 upper left, lower right earth
+              { 213 },   						-- 260 lower right light
+              { 256 },							-- 270 lower right earth
+					{ 297 },							-- 280 upper left, lower right light
+              { 234, 235 },						-- 290 right half earth
+              { 215},							-- 2A0 lower left light
+              { 217, 255 },						-- 2B0 upper half light
+              { 218 },							-- 2C0 upper right light
+              { 216 },							-- 2D0 upper left light
+              {},								-- 2E0
+              {}},								-- 2F0				  
+   "mixed", { "earth", "stone-floor", "land",
+              { 125 },							-- 300
+              { 123 },							-- 310
+              { 124, 147 },						-- 320
+              { 80 },							-- 330
+              { 103,168 },						-- 340
+					{ 81 },							-- 350
+              { 146 },							-- 360
+              { 78 },							-- 370
+					{ 104 },							-- 380
+              { 102, 169 },						-- 390
+              { 148 },							-- 3A0
+              { 79, 191 },						-- 3B0
+              { 190 },							-- 3C0
+              { 192 },							-- 3D0
+              {  },								-- 3E0
+              {  }},							-- 3F0
+   "mixed", { "stone-floor", "rug", "land", "no-building",
+              { 228 },							-- 400 upper left stone
+              { 226 },							-- 410 upper right stone
+              { 121, 249, 250 },				-- 420 upper half stone
+              { 189 },							-- 430 lower left stone
+              { 209, 229, 251 },	            -- 440 left half stone 
+					{ 201 },							-- 450 upper left, lower right stone
+              { 120 },							-- 460 lower right rug
+              { 187 },							-- 470 lower right stone
+					{ 202 },							-- 480 upper left, lower right stone
+              { 208, 230, 252 },				-- 490 right half stone
+              { 122 },							-- 4A0 lower left rug
+              { 166 ,298, 299 },				-- 4B0 upper half rug
+              { 165 },							-- 4C0 upper right rug
+              { 167 },							-- 4D0 upper left rug
+              {},								-- 4E0
               {}},								-- 4F0
    "mixed", {"rocks", "light-coast", "land", "rock", "unpassable",
              --- required due to bug in the engine
@@ -153,59 +224,59 @@ local slots = {
              { 0 },							-- 6B0
              { 0 },							-- 6C0
              { 0 },							-- 6D0
-             {},									-- 6E0
-             {}},								-- 6F0
-   "mixed", { "forest", "stone-floor", "land", "forest", "unpassable",
-              { 0 },							-- 700
-              { 0 },							-- 710
-              { 0 },							-- 720
-              { 0 },							-- 730
-              { 0 },							-- 740
-              { 0 },							-- 750
-              { 0 },							-- 760
-              { 0 },							-- 770
-              { 0 },							-- 780
-              { 0 },							-- 790
-              { 0 },							-- 7A0
-              { 0 },							-- 7B0
-              { 0 },							-- 7C0
-              { 0 },							-- 7D0
-              {},									-- 7E0
+             {},							-- 6E0
+             {}},							-- 6F0
+   "mixed", { "stone-floor", "treasure", "land", "non-mixing",
+              { 300 },							-- 700 upper left stone
+              { 300 },							-- 710 upper right stone
+              { 300 },							-- 720 upper half stone
+              { 300 },							-- 730 lower left stone
+              { 300 }, 							-- 740 left half stone 
+              { 300 },							-- 750 upper left, lower right stone
+              { 300 },							-- 760 lower right treasure
+              { 300 },							-- 770 lower right stone
+              { 300 },							-- 780 upper left, lower right stone
+              { 300 },							-- 790 right half stone
+              { 300 },							-- 7A0 lower left treasure
+              { 300 },							-- 7B0 upper half treasure
+              { 300 },							-- 7C0 upper right treasure
+              { 300 },							-- 7D0 upper left treasure
+              {},								-- 7E0
               {}},								-- 7F0
-   "mixed", { "human-wall", "dark-earth", "land", "human", "wall", "unpassable",
-              {  21,   0,  23,   0,  0},						-- 800
-              {  10,   0,  22,   0,  36},						-- 810
-              {  17,   0,  29,   0,  33},						-- 820
-              {  11,   0,  40,   0,  0},						-- 830
-              {  21,  21,   0,  23,  23,   0,  0,  0},				-- 840
-              {  10,   0,  22,   0,  36},						-- 850
-              {  13,   0,  25,   0,  36},						-- 860
-              {  12,   0,  24,   0,  38},						-- 870
-              {  20,   0,  32,   0,  35},						-- 880
-              {  18,  18,   0,  30,  30,   0,  37,  37},				-- 890
-              {  19,   0,  31,   0,  37},						-- 8A0
-              {  12,   0,  24,   0,  38},						-- 8B0
-              {  15,   0,  27,   0,  33},						-- 8C0
-              {  14,   0,  26,   0,  39},						-- 8D0
-              {},									-- 8E0
-              {}},								-- 8F0
+   "mixed", { "human-wall", "dark-earth", "land", "human", "wall", "unpassable",   
+   -- this 2x walls are required by engine to be. They are used in war1gus to initiate all dungeon tiles in Manual mode, so they can be used
+     { 46, 46, 46, 46, 46},			  
+			  {  12,   14,  16,  18 },						-- doors
+              {  13,   15,  17,  19 },
+			  {  22,   24,  26,  28 ,  23,  25,  27,  29 },			  
+			  {  32,   34,  36,  38 ,  31,  35,  37,  39 },
+			  {  11,   21,  31,  222,  10,  20,  30,  46 },			  
+			  {  40,   41,  42,  221,  43,  44,  45,  46 },				  
+	 { 46, 46, 46, 46},	 
+              { 47, 48, 49, 50},  
+			  { 60, 61, 62, 63},			  			  
+			  { 64, 65, 111, 51},  --66 wall top
+			  { 57, 58, 88, 89},			  
+			  { 90,91,92,93},
+			  { 177,178,199,288},			 
+			  { 219, 220, 260,261,238,239,284,285},			  
+			  { 323, 324, 325, 326, 331, 332, 333, 334}, 			  
+              {},												-- 8E0
+              {}},												-- 8F0
    "mixed", { "orc-wall", "dark-earth", "land", "wall", "unpassable",
-              {  21,   0,  23,   0,  0},						-- 900
-              {  10,   0,  22,   0,  36},						-- 910
-              {  17,   0,  29,   0,  33},						-- 920
-              {  11,   0,  40,   0,  0},						-- 930
-              {  21,  21,   0,  23,  23,   0,  0,  0},				-- 940
-              {  10,   0,  22,   0,  36},						-- 950
-              {  13,   0,  25,   0,  36},						-- 960
-              {  12,   0,  24,   0,  38},						-- 970
-              {  20,   0,  32,   0,  35},						-- 980
-              {  18,  18,   0,  30,  30,   0,  37,  37},				-- 990
-              {  19,   0,  31,   0,  37},						-- 9A0
-              {  12,   0,  24,   0,  38},						-- 9B0
-              {  15,   0,  27,   0,  33},						-- 9C0
-              {  14,   0,  26,   0,  39},						-- 9D0
-              {},									-- 9E0
-              {}},								-- 9F0
+     { 46, 46, 46, 46},			  
+			  {211, 212, 46, 46, 264, 265, 282, 277, 274, 275, 278, 276}, 
+			  {53,54,55,56},
+			  {8,69,70,71},
+			  {95,96,97,98},
+			  {113,114,115,116},			  
+     { 46, 46, 46, 46},
+              { 241, 242, 243, 244 },		--cave with web
+              { 267, 268, 269, 270, 291, 292, 293, 294 , 301, 302, 303, 304 },
+     { 46, 46, 46, 46},
+              {  309, 310, 311, 312, 313, 314, 315, 316 , 317, 318, 319, 320 },						-- 9D0
+              {  327, 328, 329, 330, 335, 336, 337, 46, 321, 322 },		-- 9E0
+              {}},												-- 9F0
 }
 
 -- dungeons are really special and pretty much everything is just decoration

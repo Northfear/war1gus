@@ -41,7 +41,7 @@ DefineButton( { Pos = 1, Level = 0, Icon = "icon-move-peon",
   Action = "move",
   Key = "m", Hint = "~!MOVE",
   ForUnit = {"unit-grunt", "unit-raider", "unit-spearman",
-    "unit-orc-catapult", "unit-peon",
+    "unit-orc-catapult", "unit-orc-catapult-noattack", "unit-peon",
     "unit-daemon", "unit-spider", "unit-the-dead",
     "unit-necrolyte", "unit-warlock", "unit-garona", "unit-griselda",
     "orc-group" } } )
@@ -49,19 +49,21 @@ DefineButton( { Pos = 1, Level = 0, Icon = "icon-move-peon",
 DefineButton( { Pos = 1, Level = 0, Icon = "icon-wolves1",
   Action = "move",
   Key = "m", Hint = "~!MOVE",
-  ForUnit = {"unit-raider1"} } )
+  Allowed = "check-upgrade", AllowArg = {"upgrade-wolves1"},
+  ForUnit = {"unit-raider"} } )
 
 DefineButton( { Pos = 1, Level = 0, Icon = "icon-wolves2",
   Action = "move",
   Key = "m", Hint = "~!MOVE",
-  ForUnit = {"unit-raider2"} } )
+  Allowed = "check-upgrade", AllowArg = {"upgrade-wolves2"},
+  ForUnit = {"unit-raider"} } )
 
 DefineButton( { Pos = 2, Level = 0, Icon = "icon-orc-shield1",
   Action = "stop",
   Key = "s", Hint = "~!STOP",
   ForUnit = {"unit-grunt", "unit-spearman",
-    "unit-raider", "unit-raider1", "unit-raider2",
-    "unit-orc-catapult", "unit-peon", "unit-the-dead",
+    "unit-raider",
+    "unit-orc-catapult", "unit-orc-catapult-noattack", "unit-peon", "unit-the-dead",
     "unit-daemon", "unit-spider",
     "unit-necrolyte", "unit-warlock", "unit-garona", "unit-griselda",
     "orc-group"} } )
@@ -71,7 +73,7 @@ DefineButton( { Pos = 2, Level = 0, Icon = "icon-orc-shield2",
   Allowed = "check-upgrade", AllowArg = {"upgrade-orc-shield1"},
   Key = "s", Hint = "~!STOP",
   ForUnit = {"unit-grunt", "unit-spearman",
-    "unit-raider", "unit-raider1", "unit-raider2",
+    "unit-raider",
     "unit-orc-catapult"}} )
 
 DefineButton( { Pos = 2, Level = 0, Icon = "icon-orc-shield3",
@@ -79,14 +81,14 @@ DefineButton( { Pos = 2, Level = 0, Icon = "icon-orc-shield3",
   Allowed = "check-upgrade", AllowArg = {"upgrade-orc-shield2"},
   Key = "s", Hint = "~!STOP",
   ForUnit = {"unit-grunt", "unit-spearman",
-    "unit-raider", "unit-raider1", "unit-raider2",
+    "unit-raider",
     "unit-orc-catapult"}} )
 
 DefineButton( { Pos = 3, Level = 0, Icon = "icon-axe1",
   Action = "attack",
   Key = "a", Hint = "~!ATTACK",
   ForUnit = {"unit-grunt", "unit-spearman",
-    "unit-raider", "unit-raider1", "unit-raider2",
+    "unit-raider",
     "unit-daemon", "unit-spider", "unit-the-dead",
     "unit-orc-catapult", "orc-group"} } )
 
@@ -95,7 +97,7 @@ DefineButton( { Pos = 3, Level = 0, Icon = "icon-axe2",
   Allowed = "check-upgrade", AllowArg = {"upgrade-axe1"},
   Key = "a", Hint = "~!ATTACK",
   ForUnit = {"unit-grunt", "unit-spearman",
-    "unit-raider", "unit-raider1", "unit-raider2",
+    "unit-raider",
     "unit-orc-catapult"} } )
 
 DefineButton( { Pos = 3, Level = 0, Icon = "icon-axe3",
@@ -103,7 +105,7 @@ DefineButton( { Pos = 3, Level = 0, Icon = "icon-axe3",
   Allowed = "check-upgrade", AllowArg = {"upgrade-axe2"},
   Key = "a", Hint = "~!ATTACK",
   ForUnit = {"unit-grunt", "unit-spearman",
-    "unit-raider", "unit-raider1", "unit-raider2",
+    "unit-raider",
     "unit-orc-catapult"} } )
 
 DefineButton( { Pos = 3, Level = 0, Icon = "icon-spear1",
@@ -123,10 +125,10 @@ DefineButton( { Pos = 3, Level = 0, Icon = "icon-spear3",
   Key = "a", Hint = "~!ATTACK",
   ForUnit = {"unit-spearman"} } )
 
-DefineButton( { Pos = 6, Level = 0, Icon = "icon-orc-attack-ground",
-  Action = "attack-ground",
-  Key = "g", Hint = "ATTACK ~!GROUND",
-  ForUnit = {"unit-orc-catapult", "orc-group"} } )
+--DefineButton( { Pos = 6, Level = 0, Icon = "icon-orc-attack-ground",
+--  Action = "attack-ground",
+--  Key = "g", Hint = "ATTACK ~!GROUND",
+--  ForUnit = {"unit-orc-catapult", "orc-group"} } )
 
 -- necrolyte specific actions ---------------------------------------------------
 
@@ -145,13 +147,13 @@ DefineButton( { Pos = 4, Level = 0, Icon = "icon-raise-dead",
 DefineButton( { Pos = 5, Level = 0, Icon = "icon-dark-vision",
   Action = "cast-spell", Value = "spell-dark-vision",
   Allowed = "check-upgrade", AllowArg = {"upgrade-dark-vision"},
-  Key = "v", Hint = "DARK ~!VISION",
+  Key = "r", Hint = "~!DARK VISION",
   ForUnit = {"unit-necrolyte"} } )
 
 DefineButton( { Pos = 6, Level = 0, Icon = "icon-unholy-armor",
   Action = "cast-spell", Value = "spell-unholy-armor",
   Allowed = "check-upgrade", AllowArg = {"upgrade-unholy-armor"},
-  Key = "h", Hint = "UN~!HOLY-ARMOR",
+  Key = "x", Hint = "UNHOLY-ARMOR (~!X)", 
   ForUnit = {"unit-necrolyte"} } )
 
 -- warlock specific actions ------------------------------------------------------
@@ -299,18 +301,6 @@ DefineButton( { Pos = 4, Level = 0, Icon = "icon-raider",
   Key = "r", Hint = "TRAIN ~!RAIDER",
   ForUnit = {"unit-orc-barracks"} } )
 
-DefineButton( { Pos = 4, Level = 0, Icon = "icon-raider",
-  Action = "train-unit", Value = "unit-raider1",
-  Key = "r", Hint = "TRAIN ~!RAIDER",
-  Allowed = "check-upgrade", AllowArg = {"upgrade-wolves1"},
-  ForUnit = {"unit-orc-barracks"} } )
-
-DefineButton( { Pos = 4, Level = 0, Icon = "icon-raider",
-  Action = "train-unit", Value = "unit-raider2",
-  Key = "r", Hint = "TRAIN ~!RAIDER",
-  Allowed = "check-upgrade", AllowArg = {"upgrade-wolves2"},
-  ForUnit = {"unit-orc-barracks"} } )
-
 DefineButton( { Pos = 1, Level = 0, Icon = "icon-warlock",
   Action = "train-unit", Value = "unit-warlock",
   Key = "w", Hint = "TRAIN ~!WARLOCK",
@@ -382,13 +372,13 @@ DefineButton( { Pos = 2, Level = 0, Icon = "icon-raise-dead",
 DefineButton( { Pos = 3, Level = 0, Icon = "icon-dark-vision",
   Action = "research", Value = "upgrade-dark-vision",
   Allowed = "check-single-research",
-  Key = "v", Hint = "RESEARCH DARK ~!VISION",
+  Key = "r", Hint = "RESEARCH DA~!RK VISION",
   ForUnit = {"unit-orc-temple"} } )
 
 DefineButton( { Pos = 4, Level = 0, Icon = "icon-unholy-armor",
   Action = "research", Value = "upgrade-unholy-armor",
   Allowed = "check-single-research",
-  Key = "h", Hint = "RESEARCH UN~!HOLY ARMOR",
+  Key = "x", Hint = "RESEARCH UNHOLY-ARMOR (~!X)",
   ForUnit = {"unit-orc-temple"} } )
 
 DefineButton( { Pos = 2, Level = 0, Icon = "icon-spider",

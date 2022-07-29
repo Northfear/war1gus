@@ -35,12 +35,6 @@ race1 = "human"
 race2 = "orc"
 
 DefineAiHelper(
-   {"unit-equiv", "unit-knight", "unit-knight1", "unit-knight2"}
-)
-DefineAiHelper(
-   {"unit-equiv", "unit-raider", "unit-raider1", "unit-raider2"}
-)
-DefineAiHelper(
    {"unit-equiv", "unit-human-town-hall", "unit-human-stormwind-keep"}
 )
 DefineAiHelper(
@@ -55,6 +49,17 @@ function AiCityCenter()
       return "unit-human-town-hall"
    else
       return "unit-orc-town-hall"
+   end
+end
+
+--
+--  instant build City-center of the current race.
+--
+function AiStartCityCenter()
+   if (AiGetRace() == race1) then
+      return "unit-human-first-town-hall"
+   else
+      return "unit-orc-first-town-hall"
    end
 end
 
@@ -79,6 +84,18 @@ function AiLumberMill()
       return "unit-orc-lumber-mill"
    end
 end
+
+--
+--  Tower of the current race.
+--
+function AiTower() 
+  if (race == race1) then
+    return "unit-human-guard-tower"
+  else
+    return "unit-orc-watch-tower"
+  end
+end
+
 
 --
 --  Blacksmith of the current race.
@@ -154,6 +171,125 @@ function AiUpgradeMissile2()
       return "upgrade-arrow2"
    else
       return "upgrade-spear2"
+   end
+end
+
+--  Upgrade building armor of the current race.
+--
+function AiUpgradeBuilding1()
+   if (AiGetRace() == race1) then
+      return "upgrade-human-BuildingArmor1"
+   else
+      return "upgrade-orc-BuildingArmor1"
+   end
+end
+
+--  Upgrade building armor 2 of the current race.
+--
+function AiUpgradeBuilding2()
+   if (AiGetRace() == race1) then
+      return "upgrade-human-BuildingArmor2"
+   else
+      return "upgrade-orc-BuildingArmor2"
+   end
+end
+
+--
+--  Upgrade light armor 1 of the current race.
+--
+function AiUpgradeLightArmor1()
+   if (AiGetRace() == race1) then
+      return "upgrade-human-LightArmor1"
+   else
+      return "upgrade-orc-LightArmor1"
+   end
+end
+
+--
+--  Upgrade light armor 2 of the current race.
+--
+function AiUpgradeLightArmor2()
+   if (AiGetRace() == race1) then
+      return "upgrade-human-LightArmor2"
+   else
+      return "upgrade-orc-LightArmor2"
+   end
+end
+
+--
+--  Upgrade catapult weapon 1 of the current race.
+--
+function AiUpgradeCatapult1()
+   if (AiGetRace() == race1) then
+      return "upgrade-human-CatapultAmmo1"
+   else
+      return "upgrade-orc-CatapultAmmo1"
+   end
+end
+
+--
+--  Upgrade catapult weapon 2 of the current race.
+--
+function AiUpgradeCatapult2()
+   if (AiGetRace() == race1) then
+      return "upgrade-human-CatapultAmmo2"
+   else
+      return "upgrade-orc-CatapultAmmo2"
+   end
+end
+
+--
+--  Upgrade catapult speed of the current race.
+--
+function AiUpgradeCatapultSpeed1()
+   if (AiGetRace() == race1) then
+      return "upgrade-human-CatapultSpeed"
+   else
+      return "upgrade-orc-CatapultSpeed"
+   end
+end
+
+--
+--  Upgrade cavalry speed of the current race.
+--
+function AiUpgradeCavalrySpeed1()
+   if (AiGetRace() == race1) then
+      return "upgrade-horse1"
+   else
+      return "upgrade-wolves1"
+   end
+end
+
+--
+--  Upgrade cavalry speed 2 of the current race.
+--
+function AiUpgradeCavalrySpeed2()
+   if (AiGetRace() == race1) then
+      return "upgrade-horse2"
+   else
+      return "upgrade-wolves2"
+   end
+end
+
+--
+--  Upgrade cavalry ability of the current race.
+--
+function AiUpgradeCavalrySkill1()
+   if (AiGetRace() == race1) then
+      return "upgrade-human-barding1"
+   else
+      return "upgrade-orc-saliva1"
+   end
+end
+
+--
+--  Upgrade cavalry ability 2 of the current race.
+--
+function AiUpgradeCavalrySkill2()
+   if (AiGetRace() == race1) then
+      return "upgrade-human-barding2"
+   else
+      return "upgrade-orc-saliva2"
    end
 end
 
@@ -268,7 +404,7 @@ function AiCatapult()
 end
 
 --
---  1st spell of the cavalry mages of the current race.
+--  1st spell of the cleric/necrolyte of the current race.
 --
 function AiMageSpell1()
    if (AiGetRace() == race1) then
@@ -279,7 +415,7 @@ function AiMageSpell1()
 end
 
 --
---  2nd spell of the cavalry mages of the current race.
+--  2nd spell of the cleric/necrolyte of the current race.
 --
 function AiMageSpell2()
    if (AiGetRace() == race1) then
@@ -290,7 +426,7 @@ function AiMageSpell2()
 end
 
 --
---  3rd spell of the cavalry mages of the current race.
+--  3rd spell of the cleric/necrolyte of the current race.
 --
 function AiMageSpell3()
    if (AiGetRace() == race1) then
@@ -323,7 +459,7 @@ function AiSummonerSpell2()
 end
 
 --
---  3th spell of the mages of the current race.
+--  3th spell of the summoners of the current race.
 --
 function AiSummonerSpell3()
    if (AiGetRace() == race1) then

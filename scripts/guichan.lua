@@ -12,6 +12,12 @@ bckground = CGraphic:New("ui/title_screen.png")
 bckground:Load()
 bckground:Resize(Video.Width, Video.Height)
 backgroundWidget = ImageWidget(bckground)
+
+bckgroundGray = CGraphic:ForceNew("ui/title_screen.png")
+bckgroundGray:Load(true)
+bckgroundGray:Resize(Video.Width, Video.Height)
+backgroundGrayWidget = ImageWidget(bckgroundGray)
+
 local hpanels = {
   "ui/human/panel_1.png",
   "ui/human/panel_2.png"
@@ -291,7 +297,7 @@ function WarMenu(title, background, resize)
 
   if background == nil then
     bg = backgroundWidget
-  else
+  elseif type(background) == "string" then
     bgg = CGraphic:ForceNew(background)
     bgg:Load()
     if (resize == nil or resize == true) then
@@ -301,6 +307,8 @@ function WarMenu(title, background, resize)
       menu:resize(resize[1], resize[2])
     end
     bg = ImageWidget(bgg)
+  else
+    bg = background
   end
   menu:add(bg, 0, 0)
 
@@ -339,6 +347,7 @@ function InitGameSettings()
   GameSettings.RevealMap = 0
   SetFieldOfViewType(preferences.FieldOfViewType) -- Reload Default FOV settings because some maps|tilesets could change it
   SetFogOfWarType(preferences.FogOfWarType) -- Reload default FOW type because changing fov type may cause to change it too
+  StoreSharedSettingsInBits(GameSettings)
 end
 InitGameSettings()
 
@@ -352,14 +361,28 @@ function RunMap(map, fow, revealmap)
       SetFogOfWar(fow)
     end
     if revealmap ~= nil then
-      local revealTypes = {"hidden", "known", "explored"}
-      RevealMap(revealTypes[revealmap + 1])      
+        local revealTypes = {"hidden", "known", "explored"}
+        RevealMap(revealTypes[revealmap + 1])
+    else
+      if GameSettings.RevealMap >= 2 then
+        if fow == nil and not IsNetworkGame() then
+          SetFogOfWar(false)
+        end
+        RevealMap("explored")
+      elseif GameSettings.RevealMap == 1 then
+        RevealMap("known")
+      elseif GameSettings.RevealMap == 0 and fow == nil and not IsNetworkGame() then
+        SetFogOfWar(wc2.preferences.FogOfWar)
+      end
+      if GameSettings.NoFogOfWar then
+        SetFogOfWar(false)
+      end
     end
     StartMap(map)
     if GameResult ~= GameRestart then
       loop = false
     end
-  end
+	end
   ResetColorSchemes()
   RunResultsMenu(s)
   InitGameSettings()
@@ -418,17 +441,17 @@ end
 
 function RunSelectScenarioMenu()
   buttonStatut = 0
-  local menu = WarMenu(nil, panel(5), false)
-  menu:setSize(176, 176)
+  local menu = WarMenu(nil, panel(1), {180,180})
+  menu:setSize(180, 180)
   menu:setPosition((Video.Width - 176) / 2, (Video.Height - 176) / 2)
   menu:setDrawMenusUnder(true)
 
   menu:addLabel("Select scenario", 88, 4)
 
   local browser = menu:addBrowser("maps/", "^.*%.smp%.?g?z?$",
-    12, 70, 150, 54, mapname)
+    12, 13, 160, 136, mapname)
 
-  local l = menu:addLabel(browser:getSelectedItem(), 12, 130, Fonts["game"], false)
+  local l = menu:addLabel(browser:getSelectedItem(), 12, 150, Fonts["game"], false)
 
   local function cb(s)
     l:setCaption(browser:getSelectedItem())
@@ -488,9 +511,107 @@ function RunSinglePlayerGameMenu()
 
   menu:addLabel("Scenario:", offx + 8, offy + 150, Fonts["game"], false)
   mapl = menu:addLabel(string.sub(mapname, 6), offx + 8, offy + 150 + 12, Fonts["game"], false)
-  descriptionl = menu:addLabel("descriptionl", offx + 8 + 35, offy + 150, Fonts["game"], false)
+  descriptionl = menu:addLabel("descriptionl", offx + 8, offy + 150 + 24, Fonts["game"], false)
 
   menu:addLabel("~<Single Player Game Setup~>", offx + 320/2 + 6, offy + 66)
+  menu:addFullButton("~!Random Scenario", "r", offx + 320 - 119 - 8, offy + 150 + 18 * -2,
+    function()
+      local OldRunInEditorMenu = RunInEditorMenu
+      function RunInEditorMenu()
+        Editor.Running = EditorNotRunning;
+        local done = false
+        repeat
+          Editor:CreateRandomMap(true)
+          done = true
+
+          local unit
+          Map.Info.PlayerType[0] = PlayerPerson
+          Players[0].Type = PlayerPerson
+          if race:getSelected() == 0 then
+            Players[0].Race = 0
+          else
+            Players[0].Race = race:getSelected() - 1
+          end
+          Players[0].AiName = "wc1-land-attack"
+          Players[0].Resources[1] = 5000
+          Players[0].Resources[2] = 3000
+          local playerUnitName
+          if race:getSelected() < 2 then
+            playerUnitName = "unit-peasant"
+          else
+            playerUnitName = "unit-peon"
+          end
+          local posx = Map.Info.MapWidth
+          local posy = Map.Info.MapHeight
+          for i,u in ipairs(GetUnits("any")) do
+            if GetUnitVariable(u, "Ident") == "unit-gold-mine" then
+              local ux = GetUnitVariable(u, "PosX")
+              local uy = GetUnitVariable(u, "PosY")
+              if ux + uy < posx + posy then
+                posx = ux
+                posy = uy
+              end
+            end
+          end
+	  local i=0
+	  while( i < 5 )
+		do
+		   unit = CreateUnit(playerUnitName, 0, {posx - 1, posy - 1})
+		   i=i+1
+		end
+          if FindNextResource(unit, "gold", 6) == nil then
+            done = false
+          end
+
+          local numOpponents = opponents:getSelected()
+          if (numOpponents == 0) then
+            numOpponents = 1
+          end
+
+          local opponentRace
+          local opponentUnit
+          if race:getSelected() < 2 then
+            opponentRace = 1
+            opponentUnit = "unit-peon"
+          else
+            opponentRace = 0
+            opponentUnit = "unit-peasant"
+          end
+
+          for i=1,numOpponents,1 do
+            print("Setting up opponent " .. i)
+            Map.Info.PlayerType[i] = PlayerComputer
+            Players[i].Type = PlayerComputer
+            Players[i].Race = opponentRace
+            Players[i].AiName = "wc1-land-attack"
+            Players[i].Resources[1] = 5000
+            Players[i].Resources[2] = 3000
+            unit = CreateUnit(opponentUnit, i, {(Map.Info.MapWidth / i) - 1, Map.Info.MapHeight - 1})
+            if FindNextResource(unit, "gold", 60) == nil then
+              done = false
+            end
+          end
+        until done
+
+        mapname = "maps/randommap.smp"
+        EditorSaveMap(mapname)
+        Load("scripts/ui.lua")
+      end
+      Map.Info.Description = "Random map"
+      Map.Info.MapWidth = 128
+      Map.Info.MapHeight = 128
+      if (math.random(2) > 1) then
+        LoadTileModels("scripts/tilesets/forest.lua")
+      else
+        LoadTileModels("scripts/tilesets/swamp.lua")
+      end 
+      StartEditor(nil)
+      RunInEditorMenu = OldRunInEditorMenu
+      GetMapInfo(mapname)
+      SetColorScheme()
+      GameSettings.RevealMap = 1
+      RunMap(mapname)
+    end)
   menu:addFullButton("S~!elect Scenario", "e", offx + 320 - 119 - 8, offy + 150 + 18 * -1,
     function()
       local oldmapname = mapname
@@ -503,12 +624,13 @@ function RunSinglePlayerGameMenu()
   menu:addFullButton("~!Start Game", "s", offx + 320 - 119 - 8, offy + 150 + 18*0,
     function()
       SetColorScheme()
-      GameSettings.Presets[0].Race = race:getSelected()
-      GameSettings.Resources = resources:getSelected()
-      GameSettings.Opponents = opponents:getSelected()
-      GameSettings.NumUnits = numunits:getSelected()
-      -- GameSettings.GameType = gametype:getSelected() - 1
-      war1gus.InCampaign = false
+      GameSettings.Presets[0].Race = race:getSelected() - 1
+      GameSettings.Resources = resources:getSelected() - 1
+      GameSettings.Opponents = opponents:getSelected() - 1
+      if numunits:getSelected() == 1 then
+        GameSettings.NumUnits = 5
+      end
+      GameSettings.GameType = gametype:getSelected() - 1
       RunMap(mapname, preferences.FogOfWar)
       menu:stop()
     end)
@@ -525,7 +647,7 @@ function RunSinglePlayerGameMenu()
   resources:setSize(76, 10)
 
   menu:addLabel("~<Units:~>", offx + 320 - 112 - 8, offy + (5 + 90) - 10, Fonts["game"], false)
-  numunits = menu:addDropDown({"Map Default", "One Peasant Only"}, offx + 320 - 112 - 8, offy + 5 + 90,
+  numunits = menu:addDropDown({"Map Default", "Peasants Only"}, offx + 320 - 112 - 8, offy + 5 + 90,
     function(dd) end)
   numunits:setSize(95, 10)
 
@@ -537,10 +659,10 @@ function RunSinglePlayerGameMenu()
     function(dd) end)
   opponents:setSize(76, 10)
 
-  --menu:addLabel("~<Game Type:~>", offx + 220, offy + (10 + 300) - 20, Fonts["game"], false)
-  --gametype = menu:addDropDown({"Use map settings", "Melee", "Free for all", "Top vs bottom", "Left vs right", "Man vs Machine"}, offx + 220, offy + 10 + 300,
-  --  function(dd) end)
-  --gametype:setSize(152, 20)
+  menu:addLabel("~<Game Type:~>", offx + 220, offy + (10 + 300) - 20, Fonts["game"], false)
+  gametype = menu:addDropDown({"Use map settings", "Melee", "Free for all", "Top vs bottom", "Left vs right", "Man vs Machine"}, offx + 220, offy + 10 + 300,
+   function(dd) end)
+  gametype:setSize(152, 20)
 
   function MapChanged()
     mapl:setCaption(string.sub(mapname, 6))
@@ -581,7 +703,106 @@ function BuildProgramStartMenu()
   menu:addFullButton("S~!how Credits", "h", offx + 96, offy + 52 + 17*6, RunShowCreditsMenu)
   menu:addFullButton("E~!xit Program", "x", offx + 96, offy + 52 + 17*7, function() menu:stop() end)
 
+  local time = 0
+  function checkRunDemo()
+    time = time +1
+    if (time > 2000) then
+      time = 0
+      RunDemo()
+    end
+  end
+  local listener = LuaActionListener(function(s) checkRunDemo() end)
+  menu:addLogicCallback(listener)
+
   return menu:run()
+end
+
+function RunDemo()
+  Load("scripts/ui.lua")
+  local prefix = "campaigns/orc/"
+  currentRace = "orc"
+  if math.random(1, 2) == 1 then
+    prefix = "campaigns/human/"
+    currentRace = "human"
+  end
+  InitGameVariables()
+  SetFogOfWar(false)
+  RevealMap("explored")
+  SetColorScheme()
+  local OldShowTips = preferences.ShowTips
+  preferences.ShowTips = false
+  pcall(function () Load(prefix .. "12_prerun.lua") end)
+  Load(prefix .. "12_c2.sms")
+  Load(prefix .. "campaign_titles.lua")
+  local race_prefix = "o"
+  war1gus.InCampaign = true
+  Load(prefix .. "12.smp")
+  for i = 0,4 do
+    SetSpeedResourcesHarvest(i, "gold", 1000)
+    SetSpeedResourcesReturn(i, "gold", 1000)
+    SetSpeedResourcesHarvest(i, "wood", 1000)
+    SetSpeedResourcesReturn(i, "wood", 1000)
+    SetSpeedBuild(i, 1000)
+    SetSpeedTrain(i, 1000)
+    SetSpeedUpgrade(i, 1000)
+    SetSpeedResearch(i, 1000)
+  end
+  GameSettings.Presets[0].Team = 1
+  GameSettings.Presets[0].Type = PlayerComputer
+  GameSettings.Presets[1].Team = 2
+  GameSettings.Presets[2].Team = 2
+  GameSettings.Presets[3].Team = 2
+  GameSettings.Presets[5].Type = PlayerNobody
+  local OldDemoPlayer = Player
+  function Player(idx, ...)
+    if idx == 0 then
+      arg[#arg + 1] = "ai-name"
+      arg[#arg + 1] = "wc1-land-attack"
+    end
+    return OldDemoPlayer(idx, unpack(arg))
+  end
+  local OldGetThisPlayer = GetThisPlayer
+  function GetThisPlayer() return 1 end
+  AddTrigger(function() return GameCycle > 5000 end, function() return ActionDraw() end)
+  AddTrigger(
+     function()
+        if currentRace == "human" then
+           CreateUnit("unit-warlock", 1, {56, 56})
+           CreateUnit("unit-raider", 1, {56, 56})
+           CreateUnit("unit-raider", 1, {56, 56})
+           CreateUnit("unit-necrolyte", 1, {56, 56})
+           CreateUnit("unit-grunt", 1, {56, 56})
+           CreateUnit("unit-grunt", 1, {56, 56})
+           CreateUnit("unit-spearman", 1, {56, 56})
+           CreateUnit("unit-spearman", 1, {56, 56})
+           CreateUnit("unit-spearman", 1, {56, 56})
+           CreateUnit("unit-spearman", 1, {56, 56})
+           CenterMap(56, 56)
+        else
+           CreateUnit("unit-conjurer", 1, {16, 16})
+           CreateUnit("unit-knight", 1, {16, 16})
+           CreateUnit("unit-knight", 1, {16, 16})
+           CreateUnit("unit-cleric", 1, {16, 16})
+           CreateUnit("unit-footman", 1, {16, 16})
+           CreateUnit("unit-footman", 1, {16, 16})
+           CreateUnit("unit-archer", 1, {16, 16})
+           CreateUnit("unit-archer", 1, {16, 16})
+           CreateUnit("unit-archer", 1, {16, 16})
+           CreateUnit("unit-archer", 1, {16, 16})
+           CenterMap(16, 16)
+        end
+        return true
+     end,
+     function() return false end)
+  StartMap(prefix .. "12.smp")
+  war1gus.InCampaign = false
+  Player = OldDemoPlayer
+  GetThisPlayer = OldGetThisPlayer
+  preferences.ShowTips = OldShowTips
+  Video:ResizeScreen(preferences.VideoWidth, preferences.VideoHeight)
+  Load("scripts/ui.lua")
+  ResetColorSchemes()
+  InitGameSettings()
 end
 
 LoadGameFile = nil
@@ -618,14 +839,32 @@ Load("scripts/menus/results.lua")
 
 Load("scripts/lib/layouts.lua")
 
-function WarMenuWithLayout(background, box)
-   box:calculateMinExtent()
-   local menu = WarMenu(title, background, {box.width, box.height})
-   menu:setSize(box.width, box.height)
-   menu:setPosition((Video.Width - menu:getWidth()) / 2, (Video.Height - menu:getHeight()) / 2)
-   menu:setDrawMenusUnder(true)
-   box:addWidgetTo(menu)
-   return menu
+-- create a menu with layout. takes 1, 2, or 3 arguments
+function WarMenuWithLayout(title_or_background_or_box, background_or_box, box)
+  local background, title
+  if not box then
+    box = background_or_box
+    background = title_or_background_or_box
+    title = nil
+  end
+  if not box then
+    box = background_or_box
+    background = title_or_background_or_box
+    title = nil
+  end
+
+  box:calculateMinExtent()
+  local menu
+  menu = WarMenu(title, background or backgroundGrayWidget, {box.width, box.height})
+  if background then
+    menu:setSize(box.width, box.height)
+    menu:setPosition((Video.Width - menu:getWidth()) / 2, (Video.Height - menu:getHeight()) / 2)
+    menu:setDrawMenusUnder(true)
+    box:addWidgetTo(menu)
+  else
+    box:addWidgetTo(menu, {(Video.Width - box.width) / 2, (Video.Height - box.height) / 2})
+  end
+  return menu
 end
 
 --[[
@@ -638,10 +877,15 @@ end
 CStartEditor = StartEditor
 function StartEditor(mapname)
   SetColorScheme()
+  SetScrollMargins(2, 2, 2, 2)
   CStartEditor(mapname)
+  SetScrollMargins(15, 15, 15, 15)
 end
 
+EditorStartedFromCommandline = false
+
 if (Editor.Running == EditorCommandLine) then
+  EditorStartedFromCommandline = true
   if (CliMapName and CliMapName ~= "") then
     StartEditor(CliMapName)
   else

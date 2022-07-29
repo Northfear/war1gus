@@ -48,6 +48,7 @@ local units = {
     Size = {neutral = {48, 48}},
     HitPoints = 200,
     Armor = 0,
+    Speed = 5,
     BasicDamage = 40,
     Missile = "missile-catapult-rock",
     organic = false},
@@ -55,6 +56,7 @@ local units = {
     Size = {neutral = {48, 48}},
     HitPoints = 250,
     Armor = 0,
+    Speed = 5,
     PiercingDamage = 40,
     BasicDamage = 0,
     MaxAttackRange = 3,
@@ -80,9 +82,13 @@ local units = {
     Size = {neutral = {48, 48}}},
    {Names = {neutral = "Scorpion"},
     HitPoints = 30,
+    Speed = 5,
     Armor = 0,
     PiercingDamage = 3,
     BasicDamage = 0,
+    CanCastSpell = {
+       neutral = {"spell-poison"},
+       },
     organic = false},
    {Names = {neutral = "Skeleton"}, -- "Dungeon Skeleton"
     HitPoints = 30,
@@ -93,14 +99,19 @@ local units = {
    {Names = {neutral = "Slime"},
     HitPoints = 150,
     Armor = 10,
+    Speed = 2,
     PiercingDamage = 1,
     BasicDamage = 0,
     organic = false},
    {Names = {neutral = "Spider"},
     HitPoints = 30,
     Armor = 0,
+    Speed = 5,
     PiercingDamage = 1,
     BasicDamage = 3,
+    CanCastSpell = {
+       neutral = {"spell-slow" },
+       },	
     organic = false},
    {Names = {neutral = "The dead"}, -- "Orc conjured skeleton"
     HitPoints = 40,
@@ -124,20 +135,28 @@ local units = {
     CanGatherResources = {
        {"resource-id", "gold",
         "resource-capacity", 100,
-        "wait-at-resource", 150,
+        "wait-at-resource", 300,
         "wait-at-depot", 150},
        {"resource-id", "wood",
         "resource-capacity", 100,
         "resource-step", 2,
         "wait-at-resource", 24,
         "wait-at-depot", 150,
-        "lose-resources",
+        --"lose-resources",
         "terrain-harvester"},
        {"resource-id", "lumber", -- dungeon's harvest wood outside
         "resource-capacity", 100,
-        "wait-at-resource", 150,
+        "wait-at-resource", 1200,
         "wait-at-depot", 150,
-        "final-resource", "wood"}}},
+        "final-resource", "wood"},
+       {"resource-id", "treasure", -- dungeon's have treasure chests to plunder
+        "resource-capacity", 100,
+        "resource-step", 2,
+        "wait-at-resource", 8,
+        "wait-at-depot", 150,
+        "terrain-harvester",
+        "final-resource", "gold"},
+      }},
    {Names = {orc = "Grunt", human = "Footman"},
     Costs = {"time", 60, "gold", 400},
     HitPoints = 60,
@@ -159,18 +178,19 @@ local units = {
    {Names = {orc = "Catapult", human = "Catapult"},
     Costs = {"time", 100, "gold", 900, "wood", 200},
     HitPoints = 120,
+    Speed = 2,
     BasicDamage = 255,
 	AnnoyComputerFactor = 160,
     MaxAttackRange = 8,
     Armor = 0,
-    Speed = 5,
-    organic = true,
+    organic = false,
     Missile = "missile-catapult-rock",
     Dependencies = {orc = {"blacksmith", "lumber-mill"},
                     human = {"blacksmith", "lumber-mill"}}},
    {Names = {orc = "Warlock", human = "Conjurer"},
     Costs = {"time", 90, "gold", 900},
     HitPoints = 40,
+    Speed = 3,
     Armor = 0,
     Mana = {Max = 100, Enable = true},
 	AnnoyComputerFactor = 200,
@@ -183,11 +203,12 @@ local units = {
           "spell-summon-spiders",
           "spell-summon-daemon",
           "spell-poison-cloud" } },
-    Missile = "missile-fireball",
+    Missile = {orc = "missile-fireball", human = "missile-water"},
     PiercingDamage = 6,
     BasicDamage = 0,
     MaxAttackRange = {human = 3, orc = 2}},
    {Names = {orc = "Necrolyte", human = "Cleric"},
+    Speed = 3,
     Costs = {"time", 80, "gold", 700},
     HitPoints = 40,
     Armor = 0,
@@ -244,7 +265,12 @@ for idx,unit in ipairs(units) do
    DefineUnitFromSpec(unit)
 end
 
-local knight_raider_spec = {
+local EarlyMount = "blacksmith"           --this is to skip blacksmith req for knights and raiders, if you using Rebalanced stats
+if preferences.RebalancedStats then
+EarlyMount = "farm"
+end
+
+DefineUnitFromSpec({
    Names = {orc = "Raider", human = "Knight"},
    Name = {orc = "Raider", human = "Knight"},
    Image = {orc = {"file", "orc/units/raider.png", "size", {48, 48}},
@@ -252,17 +278,12 @@ local knight_raider_spec = {
    Costs = {"time", 80, "gold", 850},
    HitPoints = 90,
    Armor = 5,
-   Speed = 13,
+   Speed = 5,
    AnnoyComputerFactor = 120,
    PiercingDamage = 1,
    BasicDamage = 13,
-   Dependencies = {orc = {"blacksmith", "kennel"},
-                   human = {"blacksmith", "stable"}}}
-DefineUnitFromSpec(knight_raider_spec)
-knight_raider_spec.Names = {orc = "Raider1", human = "Knight1"}
-DefineUnitFromSpec(knight_raider_spec)
-knight_raider_spec.Names = {orc = "Raider2", human = "Knight2"}
-DefineUnitFromSpec(knight_raider_spec)
+   Dependencies = {orc = {EarlyMount, "kennel"},
+                   human = {EarlyMount, "stable"}}})
 
 local dead_bodies = { Name = "Dead Body",
   Image = {"file", "neutral/units/dead_bodies.png", "size", {32, 32}},

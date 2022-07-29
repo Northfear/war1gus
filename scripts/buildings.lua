@@ -28,25 +28,19 @@
 --
 --      $Id$
 
-UnitTypeFiles = {}
-
-if (war1gus.tileset == nil) then
-  war1gus.tileset = "forest"
-end
-
-local townHallBuildingRules = nil
+townHallBuildingRules = nil
 if (preferences.AllowMultipleTownHalls) then
   townHallBuildingRules = {
-     { "distance", { Distance = 3, DistanceType = ">", Type = "unit-gold-mine" },
-       "distance", { Distance = 3, DistanceType = ">", Type = "unit-dungeon-entrance" } } }
+     { "distance", { Distance = 4, DistanceType = ">", Type = "unit-gold-mine" },
+       "distance", { Distance = 4, DistanceType = ">", Type = "unit-dungeon-entrance" } } }
 else
   townHallBuildingRules = {
           { "has-unit", { Type = "unit-human-town-hall", Count = 0, CountType = "=" },
             "has-unit", { Type = "unit-orc-town-hall", Count = 0, CountType = "=" },
 	    "has-unit", { Type = "unit-human-stormwind-keep", Count = 0, CountType = "=" },
 	    "has-unit", { Type = "unit-orc-blackrock-spire", Count = 0, CountType = "=" },
-            "distance", { Distance = 3, DistanceType = ">", Type = "unit-gold-mine" },
-            "distance", { Distance = 3, DistanceType = ">", Type = "unit-dungeon-entrance" } } }
+            "distance", { Distance = 4, DistanceType = ">", Type = "unit-gold-mine" },
+            "distance", { Distance = 4, DistanceType = ">", Type = "unit-dungeon-entrance" } } }
 end
 
 
@@ -137,7 +131,7 @@ local buildings = {
    {Names = {orc = "Town hall", human = "Town hall"},
     Costs = {"time", 100, "gold", 400, "wood", 400},
     HitPoints = 2500,
-    CanStore = {"wood", "gold", "lumber"},
+    CanStore = {"wood", "gold", "lumber", "treasure"},
     Supply = 5,
     RepairRange = InfiniteRepairRange,
     BuildingRules = townHallBuildingRules,
@@ -153,7 +147,7 @@ local buildings = {
    {Names = {orc = "Lumber Mill", human = "Lumber Mill"},
     Costs = {"time", 150, "gold", 600, "wood", 500},
     HitPoints = 600,
-    CanStore = {"wood"},
+    CanStore = {"wood", "lumber"},
     Size = {64, 64}},
 
    {Names = {orc = "Kennel", human = "Stable"},
@@ -237,12 +231,16 @@ DefineUnitType("unit-gold-mine", { Name = "Gold Mine",
 --    "attack", "gold-mine-attack"
 }} )
 
+local dungeon = CIcon:New("icon-dungeon-entrance")
+dungeon.G = CPlayerColorGraphic:New("contrib/graphics/ui/icon-dungeon-entrance.png", 27, 19)
+dungeon.Frame = 0
+
 DefineUnitType(
    "unit-dungeon-entrance",
    { Name = "Exit to Forest",
-     Image = {"size", {64, 64},
-              "file", "graphics/tilesets/dungeon/neutral/buildings/entrance_4x4.png"},
-     Animations = "animations-building", Icon = "icon-gold-mine",
+     Image = {"size", {32, 48},
+              "file", "contrib/graphics/buildings/entrance_2x3.png"},
+     Animations = "animations-building", Icon = "icon-dungeon-entrance",
      NeutralMinimapColor = {200, 200, 200},
      Neutral = true,
   Costs = {"time", 150},
@@ -250,13 +248,13 @@ DefineUnitType(
 --  Speed = 0,
   HitPoints = 25500,
   DrawLevel = 40,
-  TileSize = {4, 4}, BoxSize = {64, 64},
+  TileSize = {2, 3}, BoxSize = {34, 50},
   SightRange = 1,
   Armor = 20, BasicDamage = 0, PiercingDamage = 0, Missile = "missile-none",
   Priority = 0,
-  Corpse = "unit-destroyed-4x4-place",
+  Corpse = "unit-destroyed-entrance",
   ExplodeWhenKilled = "missile-explosion",
-  Type = "land",
+  Type = "naval",
   Building = true, VisibleUnderFog = true,
   GivesResource = "lumber", CanHarvest = true,
   MaxOnBoard = 5,
@@ -267,6 +265,39 @@ DefineUnitType(
     "help", "gold-mine-help",
     "dead", "building destroyed",
 }} )
+
+DefineAnimations(
+"collapse",
+   {Death = {"unbreakable begin", "frame 0", "wait 600", "label loop",
+    "wait 100", "exact-frame 0", "goto loop", "unbreakable end", "wait 1"}})
+
+DefineUnitType("unit-destroyed-entrance",
+{
+	Name = "destroyed-entrance",
+	Image = {"size", {32, 48},
+	   "file", "contrib/graphics/buildings/entrance_collapse_2x3.png"},
+	Animations = "collapse",
+	Icon = "icon-peasant",
+	Speed = 0,
+	HitPoints = 255,
+	DrawLevel = 10,
+	TileSize = {2, 3}, BoxSize = {34, 50},
+	SightRange = 0,
+	Indestructible = 1,
+	IsNotSelectable = true,
+	ComputerReactionRange = 0,
+	PersonReactionRange = 0,
+	AnnoyComputerFactor = -100,
+	AiAdjacentRange = 0,
+	Revealer = false,
+	Decoration = true,
+	BasicDamage = 0, PiercingDamage = 0, Missile = "missile-none",
+	Priority = 0,
+	Type = "land",
+	Building = true,
+	VisibleUnderFog = true,
+	Sounds = {} 
+} )
 
 DefineUnitType(
    "unit-start-location",
@@ -289,88 +320,56 @@ DefineUnitType(
 UnitTypeFiles["unit-road"] = {
   forest = "tilesets/forest/neutral/buildings/road.png",
   swamp = "tilesets/swamp/neutral/buildings/road.png",
-  dungeon = "tilesets/dungeon/neutral/buildings/road.png",
-  dungeon_campaign = "tilesets/dungeon/neutral/buildings/road.png",
+  dungeon = "contrib/graphics/buildings/dungeon_road.png",
+  dungeon_campaign = "contrib/graphics/buildings/dungeon_road.png",
   forest_campaign = "tilesets/forest/neutral/buildings/road.png",
   swamp_campaign = "tilesets/swamp/neutral/buildings/road.png"
 }
 DefineConstruction(
    "construction-none",
    {Constructions = {{Percent = 0, File = "main", Frame = 0}}})
-DefineUnitType(
+   DefineUnitType(
    "unit-road",
    { Name = "Road",
-     Image = {"size", {16, 16}},
-     Costs = {"time", 1, "gold", 50},
-     Animations = "animations-building",
-     Construction = "construction-none",
-	 NeutralMinimapColor = {100, 100, 100},
-	 OnInit = function(unit)
-	   SetUnitVariable(unit, "Player", 15);
-	 end,
-     BuildingRules = {
-	{"distance", {Distance = 1, DistanceType = "=", Type = "unit-road", Diagonal = true}},
-        {"distance", {Distance = 1, DistanceType = "=", Type = "unit-human-town-hall", Owner = "self", CheckBuilder = true}},
-        {"distance", {Distance = 1, DistanceType = "=", Type = "unit-orc-town-hall", Owner = "self", CheckBuilder = true}}},
-     AiBuildingRules = {-- these are silly, but what can you do
---	-- the first road is next to a town hall
---	{"has-unit", { Type = "unit-road", Count = 4, CountType = "<=", Owner = "any" },
---	 "distance", {Distance = 1, DistanceType = "=", Type = "unit-human-town-hall", Owner = "self", CheckBuilder = true}},
---	{"has-unit", { Type = "unit-road", Count = 4, CountType = "<=", Owner = "any" },
---	 "distance", {Distance = 1, DistanceType = "=", Type = "unit-orc-town-hall", Owner = "self", CheckBuilder = true}},
-
---	-- the first four roads should be at the town hall and have some space between them
---	{"has-unit", { Type = "unit-road", Count = 8, CountType = "<", Owner = "any" },
---	 "distance", {Distance = 1, DistanceType = "=", Type = "unit-human-town-hall", Owner = "self", CheckBuilder = true},
---	 "distance", {Distance = 2, DistanceType = ">", Type = "unit-road", Owner = "any"} },
---	{"has-unit", { Type = "unit-road", Count = 8, CountType = "<", Owner = "any" },
---	 "distance", {Distance = 1, DistanceType = "=", Type = "unit-orc-town-hall", Owner = "self", CheckBuilder = true},
---	 "distance", {Distance = 2, DistanceType = ">", Type = "unit-road", Owner = "any"} },
-
---	-- the next 12 roads should lead away from the town hall
---	{"has-unit", { Type = "unit-road", Count = 8, CountType = ">=", Owner = "any" },
---	 "has-unit", { Type = "unit-road", Count = 16, CountType = "<", Owner = "any" },
---	 "surrounded-by", { Type = "unit-road", Owner = "self", Count = 1, CountType = "<=", Distance = 1, DistanceType = "=" },
---	 "distance", {Distance = 2, DistanceType = ">=", Type = "unit-human-town-hall", Owner = "self", CheckBuilder = true},
---	 "distance", {Distance = 1, DistanceType = "=", Type = "unit-road", Owner = "any", Diagonal = true} },
---	{"has-unit", { Type = "unit-road", Count = 8, CountType = ">=", Owner = "any" },
---	 "has-unit", { Type = "unit-road", Count = 16, CountType = "<", Owner = "any" },
---	 "surrounded-by", { Type = "unit-road", Count = 1, CountType = "<=", Distance = 1, DistanceType = "=" },
---	 "distance", {Distance = 2, DistanceType = ">=", Type = "unit-orc-town-hall", Owner = "self", CheckBuilder = true},
---	 "distance", {Distance = 1, DistanceType = "=", Type = "unit-road", Owner = "any", Diagonal = true} },
-
---	-- when building next to a road later, do not build next to the town hall
---	{"has-unit", { Type = "unit-road", Count = 16, CountType = ">=", Owner = "any" },
---	 "surrounded-by", { Type = "unit-road", Count = 3, CountType = "<=", Distance = 1, DistanceType = "=" },
---	 "surrounded-by", { Type = "unit-road", Count = 4, CountType = "<=", Distance = 2, DistanceType = "=" },
---	 "distance", {Distance = 1, DistanceType = "=", Type = "unit-road", Owner = "any"} },
---	{"has-unit", { Type = "unit-road", Count = 16, CountType = ">=", Owner = "any" },
---	 "surrounded-by", { Type = "unit-road", Count = 3, CountType = "<=", Distance = 1, DistanceType = "=" },
---	 "surrounded-by", { Type = "unit-road", Count = 4, CountType = "<=", Distance = 2, DistanceType = "=" },
---	 "distance", {Distance = 1, DistanceType = "=", Type = "unit-road", Owner = "any"} }
-     },
-     BuilderOutside = true,
-     Priority = 0,
-     HitPoints = 0,
-     Icon = "icon-road",
-     TileSize = {1, 1}, BoxSize = {16, 16},
-     SightRange = 0,
-     Indestructible = 1,
-     DrawLevel = 0,
-     IsNotSelectable = true,
-     NonSolid = true,
-     Wall = true,
-     NoRandomPlacing = false,
-	 -- as good as neutral
-	 ComputerReactionRange = 0,
-	 PersonReactionRange = 0,
-	 AnnoyComputerFactor = -100,
-	 AiAdjacentRange = 0,
-	 Revealer = false,
-	 Decoration = true,
-	 -- 
-     Type = "land", Building = true,
-     VisibleUnderFog = true })
+   Image = {"size", {16, 16}},
+   Costs = {"time", 1, "gold", 50},
+   Animations = "animations-building",
+   Construction = "construction-none",
+   NeutralMinimapColor = {100, 100, 100},
+   OnInit = function(unit)
+    SetUnitVariable(unit, "Player", 15);
+  end,
+  BuildingRules = {
+    {"distance", {Distance = 1, DistanceType = "=", Type = "unit-road", Diagonal = false},
+    "distance", {Distance = 0, DistanceType = "!=", Type = "unit-road"}},
+    {"distance", {Distance = 1, DistanceType = "=", Type = "unit-human-town-hall", Owner = "self", CheckBuilder = true},
+    "distance", {Distance = 0, DistanceType = "!=", Type = "unit-road"}},
+    {"distance", {Distance = 1, DistanceType = "=", Type = "unit-orc-town-hall", Owner = "self", CheckBuilder = true},
+    "distance", {Distance = 0, DistanceType = "!=", Type = "unit-road"}}},
+    BuilderOutside = true,
+    Priority = 0,
+    HitPoints = 0,
+    Icon = "icon-road",
+    TileSize = {1, 1}, BoxSize = {16, 16},
+    SightRange = 0,
+    Indestructible = 1,
+    DrawLevel = 0,
+    Flip = false,
+    NumDirections = 16,
+    IsNotSelectable = true,
+    NonSolid = true,
+    Wall = true,
+    NoRandomPlacing = false,
+    -- as good as neutral
+    ComputerReactionRange = 0,
+    PersonReactionRange = 0,
+    AnnoyComputerFactor = -100,
+    AiAdjacentRange = 0,
+    Revealer = false,
+    Decoration = true,
+    -- 
+    Type = "land", Building = true,
+    VisibleUnderFog = true })
 
 UnitTypeFiles["unit-wall"] = {
   forest = "tilesets/forest/neutral/buildings/wall.png",
@@ -403,6 +402,8 @@ DefineUnitType(
      Construction = "construction-wall",
      Priority = 0,
      HitPoints = 60,
+     Flip = false,
+     NumDirections = 16, 
      Icon = "icon-wall",
      TileSize = {1, 1}, BoxSize = {16, 16},
      SightRange = 0,
@@ -414,3 +415,126 @@ DefineUnitType(
      VisibleUnderFog = true })
 table.insert(wc1_buildings["orc"], "unit-wall")
 table.insert(wc1_buildings["human"], "unit-wall")
+
+-- dungeon decoration
+
+DefineUnitType(
+   "unit-pentagram",
+   { Name = "Pentagram",
+     Image = {"size", {32, 32},
+              "file", "tilesets/dungeon/neutral/buildings/pentagram_2x2.png"},
+     Animations = "animations-building", Icon = "icon-dungeon-entrance",
+     NeutralMinimapColor = {200, 200, 200},
+     Neutral = true,
+  Costs = {"time", 150},
+  Construction = "construction-none", 
+  HitPoints = 25500,
+  DrawLevel = 40,
+  TileSize = {2, 2}, BoxSize = {34, 34},
+  SightRange = 0,
+  Indestructible = 1,
+  IsNotSelectable = true,
+  NonSolid = true,
+  Armor = 20, BasicDamage = 0, PiercingDamage = 0, Missile = "missile-none",
+  Priority = 0,
+  Corpse = "unit-destroyed-2x2-place",
+  ExplodeWhenKilled = "missile-explosion",
+  Type = "land",
+  Building = true, VisibleUnderFog = true,
+} )
+
+DefineUnitType(
+   "unit-north-wall",
+   { Name = "Wall",
+     Image = {"size", {32, 32},
+              "file", "tilesets/dungeon/neutral/buildings/north-wall_2x2.png"},
+     Animations = "animations-building", Icon = "icon-dungeon-entrance",
+     NeutralMinimapColor = {200, 200, 200},
+     Neutral = true,
+  Costs = {"time", 150},
+  Construction = "construction-none", 
+  HitPoints = 25500,
+  DrawLevel = 40,
+  TileSize = {2, 2}, BoxSize = {34, 34},
+  SightRange = 0,
+  Indestructible = 1,
+  IsNotSelectable = true,
+  Armor = 20, BasicDamage = 0, PiercingDamage = 0, Missile = "missile-none",
+  Priority = 0,
+  Corpse = "unit-destroyed-2x2-place",
+  ExplodeWhenKilled = "missile-explosion",
+  Type = "land",
+  Building = true, VisibleUnderFog = true,
+} )
+
+DefineUnitType(
+   "unit-wall-barrels",
+   { Name = "Barrels",
+     Image = {"size", {32, 32},
+              "file", "tilesets/dungeon/neutral/buildings/north-wall-barrels_2x2.png"},
+     Animations = "animations-building", Icon = "icon-dungeon-entrance",
+     NeutralMinimapColor = {200, 200, 200},
+     Neutral = true,
+  Costs = {"time", 150},
+  Construction = "construction-none", 
+  HitPoints = 25500,
+  DrawLevel = 40,
+  TileSize = {2, 2}, BoxSize = {34, 34},
+  SightRange = 0,
+  Indestructible = 1,
+  IsNotSelectable = true,
+  Armor = 20, BasicDamage = 0, PiercingDamage = 0, Missile = "missile-none",
+  Priority = 0,
+  Corpse = "unit-destroyed-2x2-place",
+  ExplodeWhenKilled = "missile-explosion",
+  Type = "land",
+  Building = true, VisibleUnderFog = true,
+} )
+
+DefineUnitType(
+   "unit-wall-cupboard",
+   { Name = "Cupboard",
+     Image = {"size", {32, 32},
+              "file", "tilesets/dungeon/neutral/buildings/north-wall-cupboard_2x2.png"},
+     Animations = "animations-building", Icon = "icon-dungeon-entrance",
+     NeutralMinimapColor = {200, 200, 200},
+     Neutral = true,
+  Costs = {"time", 150},
+  Construction = "construction-none", 
+  HitPoints = 25500,
+  DrawLevel = 40,
+  TileSize = {2, 2}, BoxSize = {34, 34},
+  SightRange = 0,
+  Indestructible = 1,
+  IsNotSelectable = true,
+  Armor = 20, BasicDamage = 0, PiercingDamage = 0, Missile = "missile-none",
+  Priority = 0,
+  Corpse = "unit-destroyed-2x2-place",
+  ExplodeWhenKilled = "missile-explosion",
+  Type = "land",
+  Building = true, VisibleUnderFog = true,
+} )
+
+DefineUnitType(
+   "unit-wall-wardrobe",
+   { Name = "Wardrobe",
+     Image = {"size", {32, 32},
+              "file", "tilesets/dungeon/neutral/buildings/north-wall-wardrobe_2x2.png"},
+     Animations = "animations-building", Icon = "icon-dungeon-entrance",
+     NeutralMinimapColor = {200, 200, 200},
+     Neutral = true,
+  Costs = {"time", 150},
+  Construction = "construction-none", 
+  HitPoints = 25500,
+  DrawLevel = 40,
+  TileSize = {2, 2}, BoxSize = {34, 34},
+  SightRange = 0,
+  Indestructible = 1,
+  IsNotSelectable = true,
+  Armor = 20, BasicDamage = 0, PiercingDamage = 0, Missile = "missile-none",
+  Priority = 0,
+  Corpse = "unit-destroyed-2x2-place",
+  ExplodeWhenKilled = "missile-explosion",
+  Type = "land",
+  Building = true, VisibleUnderFog = true,
+} )

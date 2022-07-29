@@ -34,10 +34,10 @@ print("Stratagus default config file loading ...\n")
 war1gus = {}
 wc1 = war1gus
 war1gus.Name = "War1gus"
-war1gus.Version = "3.1.3"
+war1gus.Version = "3.3.0"
 war1gus.Homepage = "https://github.com/Wargus/war1gus"
 war1gus.Licence = "GPL v2"
-war1gus.Copyright = "(c) 1998-2021 by The Stratagus Project"
+war1gus.Copyright = "(c) 1998-2022 by The Stratagus Project"
 
 function file_exists(path, name)
    for i,f in ipairs(ListFilesInDirectory(path)) do
@@ -53,10 +53,26 @@ function InitFuncs:add(f)
   table.insert(self, f)
 end
 
+OnTilesetChangeFunctions = {}
+function OnTilesetChangeFunctions:add(f)
+  table.insert(self, f)
+end
+
 function InitGameVariables()
   for i=1,table.getn(InitFuncs) do
     InitFuncs[i]()
   end
+end
+
+MapLoadedFuncs = {}
+function MapLoadedFuncs:add(f)
+   table.insert(self, f)
+end
+
+function MapLoaded()
+   for i=1,#MapLoadedFuncs do
+      MapLoadedFuncs[i]()
+   end
 end
 
 -- Config file version
@@ -88,12 +104,13 @@ SetFullGameName(war1gus.Name)
 --  set the default map file.
 --SetDefaultMap("campaigns/human/01.cm")
 
+SetColorCycleSpeed(10)
 
 SetSelectionStyle("rectangle")
 Preference.ShowSightRange = false
 Preference.ShowAttackRange = false
 Preference.ShowReactionRange = false
-
+Preference.ShowNoSelectionStats = false
 Preference.ShowOrders = 2
 
 -------------------------------------------------------------------------------
@@ -139,12 +156,14 @@ SetMMFogOfWarOpacityLevels(0x55, 0xAA, 0xFF) -- default values
 RightButtonMoves()
 
 --  Set the name of the missile to use when clicking
---SetClickMissile("missile-green-cross")
+SetClickMissile("missile-grey-cross")
 
 --  Set the name of the missile to use when displaying damage
 SetDamageMissile("missile-hit")
 
 SetLeaveStops(true)
+
+ResourcesMultiBuildersMultiplier(1)
 
 --  Edit this to enable/disable grabbing the mouse.
 SetGrabMouse(false)
@@ -158,18 +177,18 @@ SetKeyScroll(true)
 --SetKeyScroll(false)
 
 --  Set keyboard scroll speed in frames (1=each frame,2 each second,...)
---SetKeyScrollSpeed(1)
+SetKeyScrollSpeed(8)
 
 --  Set mouse scroll speed in pixels per frame
 --  This is when the mouse cursor hits the border.
---SetMouseScrollSpeed(1)
+SetMouseScrollSpeed(4)
 
 --  While middle-mouse is pressed:
 --  Pixels to move per scrolled mouse pixel, negative = reversed
-SetMouseScrollSpeedDefault(4)
+SetMouseScrollSpeedDefault(1)
 
 --  Same if Control is pressed
-SetMouseScrollSpeedControl(15)
+SetMouseScrollSpeedControl(2)
 
 --  Change next, for the wanted double-click delay (in ms).
 SetDoubleClickDelay(300)
@@ -196,6 +215,11 @@ SetMinimapTerrain(true)
 
 -- Make grayscale icons for cooldown
 Preference.GrayscaleIcons = true
+
+SetFontCodePage(20127) -- 7-bit ascii only
+
+-- Set this if the game renders too slow to render only every second frame
+-- Preference.FrameSkip = 1
 
 -------------------------------------------------------------------------------
 
@@ -231,11 +255,13 @@ DefineDefaultActions(
   "stop", "mine", "chop", "drill", "mine", "mine", "mine")
 
 DefineDefaultResourceNames(
-   "time", _("gold"), _("wood"), _("lumber"), "oil", "ore", "stone", "coal")
+   "time", _("gold"), _("wood"), _("lumber"), _("treasure"), "ore", "stone")
 
 DefineDefaultResourceAmounts(
    _("gold"), 100000,
-   _("wood"), 50000)
+   _("wood"), 100,
+   _("lumber"), 50000,
+   _("treasure"), 5000)
 
 DefineDefaultResourceMaxAmounts(-1, -1, -1, -1, -1, -1, -1)
 
@@ -290,10 +316,10 @@ DefaultPreference("VideoHeight", 272)
 DefaultPreference("VideoShader", "none")
 DefaultPreference("VideoFullScreen", true)
 DefaultPreference("PlayerName", "Player")
-DefaultPreference("FogOfWar", false)
+DefaultPreference("FogOfWar", true)
 DefaultPreference("ShowCommandKey", true)
 DefaultPreference("GroupKeys", "0123456789`")
-DefaultPreference("GameSpeed", 30)
+DefaultPreference("GameSpeed", 75)
 DefaultPreference("EffectsEnabled", true)
 DefaultPreference("EffectsVolume", 128)
 DefaultPreference("MusicEnabled", true)
@@ -306,14 +332,14 @@ DefaultPreference("GrabMouse", false)
 DefaultPreference("CampaignOrc", 1)
 DefaultPreference("CampaignHuman", 1)
 DefaultPreference("PlayIntro", true)
-DefaultPreference("MaxSelection", 9)
+DefaultPreference("MaxSelection", 50)
 DefaultPreference("TrainingQueue", true)
-DefaultPreference("AllowMultipleTownHalls", false)
+DefaultPreference("AllowMultipleTownHalls", true)
 DefaultPreference("AllowTownHallUpgrade", false)
 DefaultPreference("MultiColoredCampaigns", true)
 DefaultPreference("ShowButtonPopups", true)
 DefaultPreference("ShowDamage", true)
-DefaultPreference("ShowOrders", true)
+DefaultPreference("ShowOrders", false)
 DefaultPreference("OnlineServer", "network.stratagus.de")
 DefaultPreference("OnlinePort", 6112)
 DefaultPreference("SimplifiedAutoTargeting", true)
@@ -324,42 +350,46 @@ DefaultPreference("FieldOfViewType", "simple-radial")    -- default field of vie
 DefaultPreference("RebalancedStats", true)
 DefaultPreference("ControllerSpeed", 10)
 DefaultPreference("BilinearFilter", false)
+DefaultPreference("OriginalPixelRatio", true)
 
 wc1.preferences = preferences
 
-function StoreSharedSettingsInBits()
-   local bits = 0
-   if preferences.AllowMultipleTownHalls then
-      bits = bits + 1 -- bit 0
-   end
-   if preferences.AllowTownHallUpgrade then
-      bits = bits + 2 -- bit 1
-   end
-   if preferences.FieldOfViewType == "simple-radial" then
-      bits = bits + 4 -- bit 2
-   end
-   if preferences.SimplifiedAutoTargeting then
-      bits = bits + 8 -- bit 3
-   end
-   if preferences.DungeonSightBlocking then
-      bits = bits + 16 -- bit 4
-   end
-   if preferences.TrainingQueue then
-      bits = bits + 32 -- bit 5
-   end
-   if preferences.RebalancedStats then
-      bits = bits + 64 -- bit 6
-   end
-   return bits
+function StoreSharedSettingsInBits(settings)
+   settings:SetUserGameSetting(0, preferences.AllowMultipleTownHalls)
+   settings:SetUserGameSetting(1, preferences.AllowTownHallUpgrade)
+   settings:SetUserGameSetting(2, preferences.DungeonSightBlocking)
+   settings:SetUserGameSetting(3, preferences.TrainingQueue)
+   settings:SetUserGameSetting(4, preferences.RebalancedStats)
 end
 
-function RestoreSharedSettingsFromBits(bits, errorCb)
-   if bits >= 64 then
+function RestoreSharedSettingsFromBits(settings, errorCb)
+   if settings:GetUserGameSetting(0) then
+      if not preferences.AllowMultipleTownHalls then
+         preferences.AllowMultipleTownHalls = true
+         Load("scripts/buttons.lua")
+         Load("scripts/buildings.lua")
+         if preferences.RebalancedStats then
+            Load("scripts/balancing.lua")
+         end
+      end
+   else
+      if preferences.AllowMultipleTownHalls then
+         preferences.AllowMultipleTownHalls = false
+         Load("scripts/buttons.lua")
+         Load("scripts/buildings.lua")
+         if preferences.RebalancedStats then
+            Load("scripts/balancing.lua")
+         end
+      end
+   end
+   preferences.AllowTownHallUpgrade = settings:GetUserGameSetting(1)
+   preferences.DungeonSightBlocking = settings:GetUserGameSetting(2)
+   preferences.TrainingQueue = settings:GetUserGameSetting(3)
+   if settings:GetUserGameSetting(4) then
       if not preferences.RebalancedStats then
          Load("scripts/balancing.lua")
          preferences.RebalancedStats = true
       end
-      bits = bits - 64
    else
       if preferences.RebalancedStats then
          if errorCb then
@@ -367,75 +397,32 @@ function RestoreSharedSettingsFromBits(bits, errorCb)
          end
       end
    end
-   if bits >= 32 then
-      preferences.TrainingQueue = true
-      SetTrainingQueue(true)
-      bits = bits - 32
-   else
-      preferences.TrainingQueue = false
-      SetTrainingQueue(false)
-   end
-   if bits >= 16 then
-      preferences.DungeonSightBlocking = true
-      bits = bits - 16
-   else
-      preferences.DungeonSightBlocking = false
-   end
-   if bits >= 8 then
-      -- bit 3 is set
-      preferences.SimplifiedAutoTargeting = true
-      Preference.SimplifiedAutoTargeting = true
-      bits = bits - 8
-   else
-      preferences.SimplifiedAutoTargeting = false
-      Preference.SimplifiedAutoTargeting = false
-   end
-   if bits >= 4 then
-      if preferences.FieldOfViewType ~= "simple-radial" then
-         preferences.FieldOfViewType = "simple-radial"
-         SetFieldOfViewType("simple-radial")
-      end
-      bits = bits - 4
-   else
-      if preferences.FieldOfViewType ~= "shadow-casting" then
-         preferences.FieldOfViewType = "shadow-casting"
-         SetFieldOfViewType("shadow-casting")
-         SetFogOfWarType("enhanced")
-      end
-   end
-   if bits >= 2 then
-      preferences.AllowTownHallUpgrade = true
-      bits = bits - 2
-   else
-      preferences.AllowTownHallUpgrade = false
-   end
-   if bits >= 1 then
-      if not preferences.AllowMultipleTownHalls then
-         preferences.AllowMultipleTownHalls = true
-         Load("scripts/buttons.lua")
-         Load("scripts/buildings.lua")
-      end
-   else
-      if preferences.AllowMultipleTownHalls then
-         preferences.AllowMultipleTownHalls = false
-         Load("scripts/buttons.lua")
-         Load("scripts/buildings.lua")
-      end
-   end
 end
 
+MapLoadedFuncs:add(function()
+   RestoreSharedSettingsFromBits(GameSettings, function(s)
+      print("ERROR RESTORING GAME SETTINGS! " .. s)
+   end)
+end)
+
 InitFuncs:add(function()
-      GameSettings.MapRichness = StoreSharedSettingsInBits()
+   StoreSharedSettingsInBits(GameSettings)
 end)
 
 SetVideoResolution(preferences.VideoWidth, preferences.VideoHeight)
-local pixelScale = 1.2
---if preferences.VideoWidth < 640 then
---   SetWindowSize(preferences.VideoWidth * 2, preferences.VideoHeight * 2 * pixelScale)
---end
+local pixelScale = 1.0
+if preferences.OriginalPixelRatio then
+   pixelScale = 1.2
+end
+if preferences.VideoWidth < 640 then
+   SetWindowSize(preferences.VideoWidth * 2, preferences.VideoHeight * 2 * pixelScale)
+end
+-- WC1 uses non-square pixels: graphics are 320x200, but rendered 320x240
+SetVerticalPixelSize(pixelScale)
+
 SetControllerSpeed(preferences.ControllerSpeed)
 SetBilinearFilter(preferences.BilinearFilter)
-SetVerticalPixelSize(pixelScale) -- WC1 uses non-square pixels: graphics are 320x200, but rendered 320x240
+
 SetVideoFullScreen(preferences.VideoFullScreen)
 SetLocalPlayerName(preferences.PlayerName)
 SetFogOfWar(preferences.FogOfWar)
@@ -466,37 +453,45 @@ Preference.SimplifiedAutoTargeting = preferences.SimplifiedAutoTargeting
 SetFieldOfViewType(preferences.FieldOfViewType)
 SetFogOfWarType(preferences.FogOfWarType)
 SetFogOfWarBilinear(preferences.FogOfWarBilinear)
+Preference.HardwareCursor = preferences.HardwareCursor or false
 
-if file_exists("videos", "hintro.ogv") and file_exists("videos", "ointro.ogv") and file_exists("videos", "cave.ogv") and file_exists("videos", "title.ogv") then
-   SetTitleScreens(
-      {Image = "ui/logo.png",
-       Music = "sounds/logo.wav",
-       Timeout = 3},
-      {Image = "videos/hintro.ogv",
-       Iterations = 1},
-      {Image = "videos/ointro.ogv",
-       Iterations = 1},
-      {Image = "videos/cave.ogv",
-       Iterations = 1},
-      {Image = "videos/title.ogv",
-       Iterations = 1}
-   )
-elseif file_exists("videos", "intro.ogv") then
-   SetTitleScreens(
-      {Image = "ui/logo.png",
-       Music = "sounds/logo.wav",
-       Timeout = 3},
-      {Image = "videos/intro.ogv",
-       Iterations = 1}
-   )
+if preferences.PlayIntro == true then
+   if file_exists("videos", "hintro.ogv") and file_exists("videos", "ointro.ogv") and file_exists("videos", "cave.ogv") and file_exists("videos", "title.ogv") then
+      SetTitleScreens(
+         {Image = "ui/logo.png",
+          Music = "sounds/logo.wav",
+          Timeout = 3},
+         {Image = "videos/hintro.ogv",
+          Iterations = 1},
+         {Image = "videos/ointro.ogv",
+          Iterations = 1},
+         {Image = "videos/cave.ogv",
+          Iterations = 1},
+         {Image = "videos/title.ogv",
+          Iterations = 1}
+      )
+   elseif file_exists("videos", "intro.ogv") then
+      SetTitleScreens(
+         {Image = "ui/logo.png",
+          Music = "sounds/logo.wav",
+          Timeout = 3},
+         {Image = "videos/intro.ogv",
+          Iterations = 1}
+      )
+   else
+      SetTitleScreens(
+         {Image = "ui/logo.png",
+          Music = "sounds/logo.wav",
+          Timeout = 3}
+      )
+   end
 else
    SetTitleScreens(
-      {Image = "ui/logo.png",
-       Music = "sounds/logo.wav",
-       Timeout = 3}
+	  {Image = "ui/logo.png",
+	   Music = "sounds/logo.wav",
+	   Timeout = 3}
    )
 end
-
 
 --- Uses Stratagus Library path!
 Load("scripts/wc1.lua")

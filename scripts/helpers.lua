@@ -32,10 +32,21 @@
 -- Helper functions
 --
 
+UnitTypeFiles = {}
 wc1_buildings = { orc = { }, human = { } }
 wc1_units = { orc = { }, human = { }, neutral = { } }
 wc1_upgrades = { orc = { }, human = { } }
 UnitEquivalents = UnitEquivalents or { }
+
+local SetUnitTypeFiles = function()
+    -- Set the unit type graphics to the correct tileset
+    table.foreach(UnitTypeFiles, function(k, v) DefineUnitType(k, { Image = {"file", v[war1gus.tileset]} }) end)
+end
+OnTilesetChangeFunctions:add(SetUnitTypeFiles)
+
+if (war1gus.tileset == nil) then
+war1gus.tileset = "forest"
+end
 
 function DefineBuildingFromSpec(building)
     local orcident
@@ -241,7 +252,9 @@ function DefineUnitFromSpec(unit)
             TileSize = { 1, 1 },
             BoxSize = { 15, 15 },
             SightRange = 3,
-            Speed = 9,
+            PoisonDrain = 2, -- only used when rebalanced mode is active
+            Poison = { Value = 0, Max = 1000, Enable = true }, -- only used when rebalanced mode is active
+            Speed = 4,
             organic = true,
             ComputerReactionRange = 4,
             PersonReactionRange = 6,
@@ -281,6 +294,7 @@ function DefineUnitFromSpec(unit)
             else
                 unitType.Corpse = "unit-human-dead-body"
             end
+            unitType.Impact = {"general", "missile-blood-in-impact"}
         end
 
         if unit.Mana ~= nil then
@@ -308,7 +322,10 @@ function DefineUnitFromSpec(unit)
                     end
                 end
                 if resource == "lumber" then
-                   resource = "wood"
+                    resource = "wood"
+                end
+                if resource == "treasure" then
+                    resource = "gold"
                 end
                 tbl[table.getn(tbl) + 1] = "file-when-loaded"
                 tbl[table.getn(tbl) + 1] = race .. "/units/" .. unitname ..

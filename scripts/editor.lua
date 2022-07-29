@@ -32,6 +32,18 @@
 --	Set which icons to display
 SetEditorSelectIcon("icon-human-patrol-land")
 SetEditorUnitsIcon("icon-footman")
+SetEditorRandomizeProperties({
+  BaseTile = 80, -- grass
+  RandomTiles = {
+	{32, 1, 40}, -- water
+	{64, 4, 15}, -- light grass
+	{112, 20, 7}, -- forest	
+	{96, 12, 2}, -- dark grass
+  },
+  RandomUnits = {
+    {"unit-gold-mine", 1, 20000, 64}
+  }
+})
 
 --
 --	editor-unit-types a sorted list of unit-types for the editor.
@@ -41,52 +53,57 @@ local editor_types = {
 --  "unit-human-start-location",
 
   "unit-peasant",
+  "",
   "unit-footman",
   "unit-archer",
-
-  "unit-knight",
   "unit-human-catapult",
-  "unit-conjurer",
+  "unit-knight",
   "unit-cleric",
+  "unit-conjurer",
+  "", "", 
+  "unit-human-farm",
+  "unit-human-lumber-mill",
+  "unit-human-barracks",
+  "unit-human-town-hall",
+  "unit-human-guard-tower",
+  "", 
+  "unit-human-blacksmith", 
+  "unit-human-church",
+  "unit-human-stable",
+  "unit-human-tower",
+  "", "", 
   "unit-medivh",
   "unit-lothar",
-
-  "unit-human-town-hall",
-  "unit-human-farm",
-  "unit-human-barracks",
-  "unit-human-lumber-mill",
-  "unit-human-blacksmith",
-  "unit-human-stable",
-  "unit-human-church",
-  "unit-human-tower",
   "unit-human-stormwind-keep",
-
+  "", 
 --- - - - - - - - - - - - - - - - - - -
-  "", "",
+ 
 --  "unit-orc-start-location",
 
   "unit-peon",
-
+  "",
   "unit-grunt",
   "unit-spearman",
-  "unit-raider",
   "unit-orc-catapult",
-  "unit-warlock",
+  "unit-raider",
   "unit-necrolyte",
+  "unit-warlock",
+  "", "", 
+  "unit-orc-farm",
+  "unit-orc-lumber-mill",
+  "unit-orc-barracks",
+  "unit-orc-town-hall",
+  "unit-orc-watch-tower",
+  "", 
+  "unit-orc-blacksmith",
+  "unit-orc-temple",
+  "unit-orc-kennel",
+  "unit-orc-tower",
+  "",  "", 
   "unit-grizelda",
   "unit-garona",
-
-  "unit-orc-town-hall",
-  "unit-orc-farm",
-  "unit-orc-barracks",
-  "unit-orc-lumber-mill",
-  "unit-orc-blacksmith",
-  "unit-orc-kennel",
-  "unit-orc-temple",
-  "unit-orc-tower",
   "unit-orc-blackrock-spire",
-
-  "", "",
+  "", 
 
 --- - - - - - - - - - - - - - - - - - -
 
@@ -97,17 +114,32 @@ local editor_types = {
 
   "unit-gold-mine",
   "unit-dungeon-entrance",
-  "unit-brigand",
-  "unit-daemon",
-  "unit-fire-elemental",
-  "unit-ogre",
+  
+  "", "",
   "unit-scorpion",
-  "unit-skeleton",
-  "unit-slime",
-  "unit-spider",
-  "unit-the-dead",
+  "unit-spider",  
   "unit-water-elemental",
+  "unit-daemon",
+  "unit-skeleton",
+  "unit-the-dead",
+
+  "unit-brigand",
+  "unit-ogre",
+  "unit-slime",
+  "unit-fire-elemental",
   "unit-wounded",
+
+  "", "","",
+  "unit-slime-pond",
+  "unit-magma-rift",
+  "unit-windmill",
+  "unit-ruin",
+  "", "",
+  "unit-pentagram",
+  "unit-north-wall",
+  "unit-wall-wardrobe",
+  "unit-wall-cupboard",
+  "unit-wall-barrels",
 
 -- Placing this unit-types on map is not (yet?) supported.
 --  "unit-dead-body",
@@ -120,13 +152,14 @@ for key,value in ipairs(editor_types) do
 end
 
 local keystrokes = {
-  {"Ctrl-t", "cycle active tool"},
-  {"Ctrl-f", "toggle full screen"},
-  {"Ctrl-m", "cycle mirror editing"},
-  {"Ctrl-x", "exit"},
-  {"Ctrl-q", "quit to menu"},
-  {"Ctrl-z", "undo"},
-  {"Ctrl-y", "redo"},
+  {"Ctrl-R", "randomize map"},  
+  {"Ctrl-T", "cycle active tool"},
+  {"Ctrl-F", "toggle full screen"},
+  {"Ctrl-M", "cycle mirror editing"},
+  {"Ctrl-C", "exit"},
+  {"Ctrl-Q", "quit to menu"},
+  {"Ctrl-Z", "undo"},
+  {"Ctrl-Y", "redo"},
   {"backspace", "remove unit under cursor"},
   {"0", "unit under cursor to last player (neutral)"},
   {"1-9", "unit under cursor to player 1-9"},
@@ -134,9 +167,10 @@ local keystrokes = {
   {"F6", "Player properties"},
   {"F11", "Save map"},
   {"F12", "Load map"},
-  {"Right mouse", "Tile mode: Deselect current tile"},
-  {"Right mouse", "Unit mode: Deselect current unit"},
-  {"Right mouse", "Select mode: Edit unit under cursor"},
+  {"Rightclick", "Tile mode: Deselect current tile"},
+  {"Rightclick", "Unit mode: Deselect current unit"},
+  {"Rightclick", "Select mode: Edit unit under cursor"},
+  {"Alt+click", "Tile mode when no tile is selected: Modify tile under cursor"}
 }
 
 function RunEditorHelpMenu()

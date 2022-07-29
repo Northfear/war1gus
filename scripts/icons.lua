@@ -29,24 +29,20 @@
 --      $Id$
 
 icons = {
-  {"icon-footman", 0},
-  {"icon-grunt", 1},
-  {"icon-conjurer", 2},
-  {"icon-warlock", 3},
-  {"icon-peasant", 4},
-  {"icon-peon", 5},
+  {"icon-footman", 0, humanPaletteSwap},
+  {"icon-grunt", 1, orcPaletteSwap},
+  {"icon-conjurer", 2, humanPaletteSwap},
+  {"icon-warlock", 3, orcPaletteSwap},
+  {"icon-peasant", 4, humanPaletteSwap},
+  {"icon-peon", 5, orcPaletteSwap},
   {"icon-human-catapult", 6},
   {"icon-orc-catapult", 7},
-  {"icon-knight", 8},
-  {"icon-knight1", 8},
-  {"icon-knight2", 8},
-  {"icon-raider", 9},
-  {"icon-raider1", 9},
-  {"icon-raider2", 9},
-  {"icon-archer", 10},
-  {"icon-spearman", 11},
-  {"icon-cleric", 12},
-  {"icon-necrolyte", 13},
+  {"icon-knight", 8, humanPaletteSwap},
+  {"icon-raider", 9, orcPaletteSwap},
+  {"icon-archer", 10, humanPaletteSwap},
+  {"icon-spearman", 11, orcPaletteSwap},
+  {"icon-cleric", 12, humanPaletteSwap},
+  {"icon-necrolyte", 13, orcPaletteSwap},
   {"icon-human-farm", 14},
   {"icon-orc-farm", 15},
   {"icon-human-barracks", 16},
@@ -184,15 +180,23 @@ for i = 1,table.getn(icons) do
     Frame = icons[i][2],})
 end
 ]]
-for i = 1,table.getn(icons) do
-   if war1gus.tileset == "forest" or war1gus.tileset == "forest_campaign" then
-      iconname = "tilesets/forest/portrait_icons.png"
-   elseif war1gus.tileset == "dungeon" or war1gus.tileset == "dungeon_campaign" then
-      iconname = "tilesets/dungeon/portrait_icons.png"
-   else
-      iconname = "tilesets/swamp/portrait_icons.png"
-   end
-   icon = CIcon:New(icons[i][1])
-   icon.G = CPlayerColorGraphic:New(iconname, 27, 19)
-   icon.Frame = icons[i][2]
+
+local DefineIcons = function()
+  for i = 1,table.getn(icons) do
+    if war1gus.tileset == "forest" or war1gus.tileset == "forest_campaign" then
+        iconname = "tilesets/forest/portrait_icons.png"
+    elseif war1gus.tileset == "dungeon" or war1gus.tileset == "dungeon_campaign" then
+        iconname = "tilesets/dungeon/portrait_icons.png"
+    else
+        iconname = "tilesets/swamp/portrait_icons.png"
+    end
+    icon = CIcon:New(icons[i][1])
+    icon.G = CPlayerColorGraphic:New(iconname, 27, 19)
+    icon.Frame = icons[i][2]
+    if icons[i][3] then
+      DefinePaletteSwap(icons[i][1], icons[i][3])
+    end
+  end
 end
+DefineIcons()
+OnTilesetChangeFunctions:add(DefineIcons)

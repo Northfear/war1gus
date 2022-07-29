@@ -34,9 +34,9 @@
 --  Includes
 ----------------------------------------------------------------------------*/
 
-#define VERSION "3.0.0.20201210" // Version of extractor wartool
+#define VERSION "3.3.0" // Version of extractor wartool
 #define AUTHORS "Lutz Sammer, Nehal Mistry, Jimmy Salmon, Pali Rohar, and Tim Felgentreff."
-#define COPYRIGHT "1998-2015 by The Stratagus Project"
+#define COPYRIGHT "1998-2022 by The Stratagus Project"
 
 #ifndef _MSC_VER
 #define __USE_XOPEN_EXTENDED 1 // to get strdup
@@ -55,6 +55,7 @@
 #include <png.h>
 #include <zlib.h>
 
+#include <iomanip>
 #include <string>
 #include <regex>
 #include <sstream>
@@ -256,11 +257,15 @@ RuinParts TilesetRuinParts[] = {
 	{ "forest-wall-construction",{ 34 _15 } },
 	{ "swamp-wall-construction",{ 34 _15 } },
 	{ "dungeon-wall-construction",{ 22 _15 } },
-	{ "dungeon-entrance-4x4",
-	  {0xb5, 0xcd, 0xce, 0x8a,
-	   0x38, 0x49, 0x4a, 0x9f,
-	   0x47, 0x64, 0x65, 0x88,
-       0x61, 0x75, 0x76, 0x60} },
+	{ "dungeon-entrance-2x3",
+	  {0x49, 0x4a,
+	   0x64, 0x65,
+           0x75, 0x76} },
+	{ "pentagram", { 262, 263, 286, 287 _12 }},
+	{ "north-wall", { 64, 65, 88, 89 _12 }},
+	{ "north-wall-barrels", { 64, 64, 92, 93 _12 }},
+	{ "north-wall-wardrobe", { 219, 220, 238, 239 _12 }},
+	{ "north-wall-cupboard", { 260, 261, 284, 285 _12 }},
 };
 
 char* ArchiveDir;
@@ -400,14 +405,14 @@ Control Todo[] = {
 {CS,0,"forest2", 61 __},
 {CS,0,"swamp1", 89 __},
 {CS,0,"swamp2", 91 __},
-{CS,0,"dungeon1", 101 __},
-{CS,0,"dungeon2", 103 __},
-{CS,0,"dungeon3", 105 __},
-{CS,0,"dungeon4", 107 __},
-{CS,0,"dungeon5", 109 __},
-{CS,0,"dungeon6", 111 __},
-{CS,0,"dungeon7", 113 __},
-{CS,0,"dungeon8", 115 __},
+{CS,0,"dungeons/dungeon1", 101 __},
+{CS,0,"dungeons/dungeon2", 103 __},
+{CS,0,"dungeons/dungeon3", 105 __},
+{CS,0,"dungeons/dungeon4", 107 __},
+//{CS,0,"dungeons/dungeon5", 109 __}, this 4x maps are exactly the same as dungeon4, they clutter maplist providing no benefit
+//{CS,0,"dungeons/dungeon6", 111 __},
+//{CS,0,"dungeons/dungeon7", 113 __},
+//{CS,0,"dungeons/dungeon8", 115 __},
 
 // Tilesets
 {T,0,"forest/terrain",										 190 __},
@@ -502,6 +507,7 @@ Control Todo[] = {
 {U,0,"neutral/units/fire_elemental",						 191, 300 _2},
 {U,0,"neutral/units/scorpion",								 191, 301 _2},
 {U,0,"neutral/units/brigand",								 191, 302 _2},
+{U,0,"neutral/units/colored-brigand",						 191, 302 _2},
 {U,0,"neutral/units/the_dead",								 191, 303 _2},
 {U,0,"neutral/units/skeleton",								 191, 304 _2},
 {U,0,"neutral/units/daemon",								 191, 305 _2},
@@ -611,6 +617,11 @@ Control Todo[] = {
 {RP,0,"dungeon/neutral/buildings/wall",196,14,1 _1 },
 
 {LM,0,"dungeon/neutral/buildings/entrance",196,15,4 _1 },
+{LM,0,"dungeon/neutral/buildings/pentagram",196,16,2 _1 },
+{LM,0,"dungeon/neutral/buildings/north-wall",196,17,2 _1 },
+{LM,0,"dungeon/neutral/buildings/north-wall-barrels",196,18,2 _1 },
+{LM,0,"dungeon/neutral/buildings/north-wall-wardrobe",196,19,2 _1 },
+{LM,0,"dungeon/neutral/buildings/north-wall-cupboard",196,20,2 _1 },
 
 // Missiles
 {U,0,"missiles/fireball",									 217, 347 _2},
@@ -1614,7 +1625,7 @@ void EncodeFLC(flcfile *file, const char *iflc, int speed, int stillImage, int u
 	fs::directory_iterator videosDir(fs::path(Dir) / VIDEO_PATH);
 	std::regex pattern("[a-zA-Z0-9]+\\-([0-9]+)");
 	for(auto& direntry: fs::directory_iterator(fs::path(Dir) / VIDEO_PATH)) {
-		if (direntry.is_regular_file()) {
+		if (fs::is_regular_file(fs::status(direntry))) {
 			auto& direntry_path = direntry.path();
 			if (direntry_path.extension() == ".png") {
 				std::smatch sm;
@@ -1677,7 +1688,7 @@ void EncodeFLC(flcfile *file, const char *iflc, int speed, int stillImage, int u
 	}
 	
 	for(auto& direntry: fs::directory_iterator(fs::path(Dir) / VIDEO_PATH)) {
-		if (direntry.is_regular_file() && direntry.path().extension() == ".png") {
+		if (fs::is_regular_file(fs::status(direntry)) && direntry.path().extension() == ".png") {
 			fs::remove(direntry);
 		}
 	}
@@ -2015,6 +2026,49 @@ void DecodeMiniTile(unsigned char* image, int ix, int iy, int iadd,
 	}
 }
 
+static void FixupPalette(unsigned char* palp, int paletteIndex)
+{
+	if (paletteIndex == 191 || paletteIndex == 194 || paletteIndex == 197) {
+		unsigned char* gpalp;
+		int i;
+		gpalp = ExtractEntry(ArchiveOffsets[217], NULL);
+		for (i = 0; i < 128; ++i) {
+			if (palp[i * 3 + 0] == 63 && palp[i * 3 + 1] == 0 &&
+					palp[i * 3 + 2] == 63) {
+				palp[i * 3 + 0] = gpalp[i * 3 + 0];
+				palp[i * 3 + 1] = gpalp[i * 3 + 1];
+				palp[i * 3 + 2] = gpalp[i * 3 + 2];
+			}
+		}
+		for (i = 128; i < 256; ++i) {
+			if (!(gpalp[i * 3 + 0] == 63 && gpalp[i * 3 + 1] == 0 &&
+					gpalp[i * 3 + 2] == 63)) {
+				palp[i * 3 + 0] = gpalp[i * 3 + 0];
+				palp[i * 3 + 1] = gpalp[i * 3 + 1];
+				palp[i * 3 + 2] = gpalp[i * 3 + 2];
+			}
+		}
+		free(gpalp);
+	}
+	ConvertPalette(palp);
+	if (paletteIndex == 191 || paletteIndex == 194 || paletteIndex == 197) {
+		// timfel: fixup some colors, because I don't understand how these palettes really work
+#define SET_PAL_RGB(idx, r, g, b) palp[idx * 3] = r; palp[idx * 3 + 1] = g; palp[idx * 3 + 2] = b
+		SET_PAL_RGB(127, 60, 0, 121);
+		SET_PAL_RGB(128, 81, 0, 146);
+		SET_PAL_RGB(129, 109, 0, 174);
+		SET_PAL_RGB(130, 142, 0, 203);
+		SET_PAL_RGB(131, 174, 0, 219);
+		SET_PAL_RGB(132, 211, 0, 235);
+		SET_PAL_RGB(133, 247, 4, 255);
+		SET_PAL_RGB(146, 255, 211, 65);
+		SET_PAL_RGB(147, 255, 166, 28);
+		SET_PAL_RGB(148, 178, 134, 0);
+		SET_PAL_RGB(150, 40, 48, 48);
+#undef SET_PAL_RGB
+	}
+}
+
 /**
 **  Convert a tileset to my format.
 */
@@ -2046,28 +2100,7 @@ int ConvertTileset(const char* file,int index)
 		palp = (unsigned char*)realloc(palp, 768);
 		memset(palp + len, 0, 768 - len);
 	}
-	if (pale == 191 || pale == 194 || pale == 197) {
-		unsigned char* gpalp;
-		int i;
-		gpalp = ExtractEntry(ArchiveOffsets[217], NULL);
-		for (i = 0; i < 128; ++i) {
-			if (palp[i * 3 + 0] == 63 && palp[i * 3 + 1] == 0 &&
-					palp[i * 3 + 2] == 63) {
-				palp[i * 3 + 0] = gpalp[i * 3 + 0];
-				palp[i * 3 + 1] = gpalp[i * 3 + 1];
-				palp[i * 3 + 2] = gpalp[i * 3 + 2];
-			}
-		}
-		for (i = 128; i < 256; ++i) {
-			if (!(gpalp[i * 3 + 0] == 63 && gpalp[i * 3 + 1] == 0 &&
-					gpalp[i * 3 + 2] == 63)) {
-				palp[i * 3 + 0] = gpalp[i * 3 + 0];
-				palp[i * 3 + 1] = gpalp[i * 3 + 1];
-				palp[i * 3 + 2] = gpalp[i * 3 + 2];
-			}
-		}
-		free(gpalp);
-	}
+	FixupPalette(palp, pale);
 	mini = ExtractEntry(ArchiveOffsets[index], NULL);
 	if (!mini) {
 		free(palp);
@@ -2097,8 +2130,6 @@ int ConvertTileset(const char* file,int index)
 			}
 		}
 	}
-
-	ConvertPalette(palp);
 
 	sprintf(buf, "%s/%s/%s.png", Dir, TILESET_PATH, file);
 	CheckPath(buf);
@@ -2150,28 +2181,7 @@ int ConvertTilesetUnit(const char* file, int index, int directions_idx)
 		palp = (unsigned char*)realloc(palp, 768);
 		memset(palp + len, 0, 768 - len);
 	}
-	if (pale == 191 || pale == 194 || pale == 197) {
-		unsigned char* gpalp;
-		int i;
-		gpalp = ExtractEntry(ArchiveOffsets[217], NULL);
-		for (i = 0; i < 128; ++i) {
-			if (palp[i * 3 + 0] == 63 && palp[i * 3 + 1] == 0 &&
-					palp[i * 3 + 2] == 63) {
-				palp[i * 3 + 0] = gpalp[i * 3 + 0];
-				palp[i * 3 + 1] = gpalp[i * 3 + 1];
-				palp[i * 3 + 2] = gpalp[i * 3 + 2];
-			}
-		}
-		for (i = 128; i < 256; ++i) {
-			if (!(gpalp[i * 3 + 0] == 63 && gpalp[i * 3 + 1] == 0 &&
-					gpalp[i * 3 + 2] == 63)) {
-				palp[i * 3 + 0] = gpalp[i * 3 + 0];
-				palp[i * 3 + 1] = gpalp[i * 3 + 1];
-				palp[i * 3 + 2] = gpalp[i * 3 + 2];
-			}
-		}
-		free(gpalp);
-	}
+	FixupPalette(palp, pale);
 	mini = ExtractEntry(ArchiveOffsets[index], NULL);
 	if (!mini) {
 		free(palp);
@@ -2202,8 +2212,6 @@ int ConvertTilesetUnit(const char* file, int index, int directions_idx)
 			}
 		}
 	}
-
-	ConvertPalette(palp);
 
 	sprintf(buf, "%s/%s/%s.png", Dir, TILESET_PATH, file);
 	CheckPath(buf);
@@ -2244,28 +2252,7 @@ int ConvertRuin(const char* file, int index, int partsidx, int dimensions)
 		palp = (unsigned char*)realloc(palp, 768);
 		memset(palp + len, 0, 768 - len);
 	}
-	if (pale == 191 || pale == 194 || pale == 197) {
-		unsigned char* gpalp;
-		int i;
-		gpalp = ExtractEntry(ArchiveOffsets[217], NULL);
-		for (i = 0; i < 128; ++i) {
-			if (palp[i * 3 + 0] == 63 && palp[i * 3 + 1] == 0 &&
-				palp[i * 3 + 2] == 63) {
-				palp[i * 3 + 0] = gpalp[i * 3 + 0];
-				palp[i * 3 + 1] = gpalp[i * 3 + 1];
-				palp[i * 3 + 2] = gpalp[i * 3 + 2];
-			}
-		}
-		for (i = 128; i < 256; ++i) {
-			if (!(gpalp[i * 3 + 0] == 63 && gpalp[i * 3 + 1] == 0 &&
-				gpalp[i * 3 + 2] == 63)) {
-				palp[i * 3 + 0] = gpalp[i * 3 + 0];
-				palp[i * 3 + 1] = gpalp[i * 3 + 1];
-				palp[i * 3 + 2] = gpalp[i * 3 + 2];
-			}
-		}
-		free(gpalp);
-	}
+	FixupPalette(palp, pale);
 	mini = ExtractEntry(ArchiveOffsets[index], NULL);
 	if (!mini) {
 		free(palp);
@@ -2291,7 +2278,6 @@ int ConvertRuin(const char* file, int index, int partsidx, int dimensions)
 			}
 		}
 	}
-	ConvertPalette(palp);
 	sprintf(buf, "%s/%s/%s_%dx%d.png", Dir, TILESET_PATH, file, dimensions, dimensions);
 	CheckPath(buf);
 	SavePNG(buf, image, width, height, palp, 0);
@@ -2434,29 +2420,7 @@ int ConvertGfu(const char* file, int pale, int gfue)
 		palp = (unsigned char*)realloc(palp, 768);
 		memset(palp + len, 0, 768 - len);
 	}
-	if (pale == 191 || pale == 194 || pale == 197) {
-		unsigned char* gpalp;
-		int i;
-
-		gpalp = ExtractEntry(ArchiveOffsets[217], NULL);
-		for (i = 0; i < 128; ++i) {
-			if (palp[i * 3 + 0] == 63 && palp[i * 3 + 1] == 0 &&
-					palp[i * 3 + 2] == 63) {
-				palp[i * 3 + 0] = gpalp[i * 3 + 0];
-				palp[i * 3 + 1] = gpalp[i * 3 + 1];
-				palp[i * 3 + 2] = gpalp[i * 3 + 2];
-			}
-		}
-		for (i = 128; i < 256; ++i) {
-			if (!(gpalp[i * 3 + 0] == 63 && gpalp[i * 3 + 1] == 0 &&
-					gpalp[i * 3 + 2] == 63)) {
-				palp[i * 3 + 0] = gpalp[i * 3 + 0];
-				palp[i * 3 + 1] = gpalp[i * 3 + 1];
-				palp[i * 3 + 2] = gpalp[i * 3 + 2];
-			}
-		}
-		free(gpalp);
-	}
+	FixupPalette(palp, pale);
 
 	gfup = ExtractEntry(ArchiveOffsets[gfue], NULL);
 	if (!gfup) {
@@ -2497,7 +2461,6 @@ int ConvertGfu(const char* file, int pale, int gfue)
 	}
 
 	free(gfup);
-	ConvertPalette(palp);
 
 	sprintf(buf, "%s/%s/%s.png", Dir, UNIT_PATH, file);
 	CheckPath(buf);
@@ -2514,14 +2477,33 @@ int ConvertGfu(const char* file, int pale, int gfue)
 			++p;
 		}
 	}
-	if (strstr(file, "neutral/") != NULL) {
-		unsigned char* p = image;
-		unsigned char* end = image + (w * h);
-		while (p < end) {
-			if (*p >= 176 && *p <= 183) {
-				*p = *p + 24;
+	if (strstr(file, "neutral/")) {
+		if (strstr(file, "fire_elemental") || strstr(file, "daemon")) {
+			// pass
+		} else if (strstr(file, "water_elemental")) {
+			// modify palette so we don't swap out all those colors
+			for (int i = 8; i <= 15; i++) {
+				palp[i * 3] = palp[(i + 192) * 3];
+				palp[i * 3 + 1] = palp[(i + 192) * 3 + 1];
+				palp[i * 3 + 2] = palp[(i + 192) * 3 + 2];
 			}
-			++p;
+			unsigned char* p = image;
+			unsigned char* end = image + (w * h);
+			while (p < end) {
+				if (*p >= 200 && *p <= 207) {
+					*p = *p - 192;
+				}
+				++p;
+			}
+		} else {
+			unsigned char* p = image;
+			unsigned char* end = image + (w * h);
+			while (p < end) {
+				if (*p >= 176 && *p <= 183) {
+					*p = *p + 24;
+				}
+				++p;
+			}
 		}
 	}
 	if (strstr(file, "spider") != NULL) {
@@ -2530,6 +2512,16 @@ int ConvertGfu(const char* file, int pale, int gfue)
 		while (p < end) {
 			if (*p >= 99 && *p <= 102) {
 				*p = *p + 104;
+			}
+			++p;
+		}
+	}
+	if (strstr(file, "colored-brigand") != NULL) {
+		unsigned char* p = image;
+		unsigned char* end = image + (w * h);
+		while (p < end) {
+			if (*p >= 168 && *p <= 175) {
+				*p = *p + (200 - 168);
 			}
 			++p;
 		}
@@ -2600,28 +2592,7 @@ int ConvertImage(const char* file, int pale, int imge)
 		palp = (unsigned char*)realloc(palp, 768);
 		memset(palp + len, 0, 768 - len);
 	}
-	if (pale == 191 || pale == 194 || pale == 197) {
-		unsigned char* gpalp;
-		int i;
-		gpalp = ExtractEntry(ArchiveOffsets[217], NULL);
-		for (i = 0; i < 128; ++i) {
-			if (palp[i * 3 + 0] == 63 && palp[i * 3 + 1] == 0 &&
-					palp[i * 3 + 2] == 63) {
-				palp[i * 3 + 0] = gpalp[i * 3 + 0];
-				palp[i * 3 + 1] = gpalp[i * 3 + 1];
-				palp[i * 3 + 2] = gpalp[i * 3 + 2];
-			}
-		}
-		for (i = 128; i < 256; ++i) {
-			if (!(gpalp[i * 3 + 0] == 63 && gpalp[i * 3 + 1] == 0 &&
-					gpalp[i * 3 + 2] == 63)) {
-				palp[i * 3 + 0] = gpalp[i * 3 + 0];
-				palp[i * 3 + 1] = gpalp[i * 3 + 1];
-				palp[i * 3 + 2] = gpalp[i * 3 + 2];
-			}
-		}
-		free(gpalp);
-	}
+	FixupPalette(palp, pale);
 
 	imgp = ExtractEntry(ArchiveOffsets[imge], NULL);
 	if (!imgp) {
@@ -2632,7 +2603,6 @@ int ConvertImage(const char* file, int pale, int imge)
 	image = ConvertImg(imgp, &w, &h);
 
 	free(imgp);
-	ConvertPalette(palp);
 
 	sprintf(buf, "%s/%s/%s.png", Dir, GRAPHIC_PATH, file);
 	CheckPath(buf);
@@ -2650,7 +2620,8 @@ int ConvertImage(const char* file, int pale, int imge)
 		}
 	}
 
-	SavePNG(buf, image, w, h, palp, -1);
+	bool transparent = strstr(file, "_icon_1") || strstr(file, "percent_complete");
+	SavePNG(buf, image, w, h, palp, transparent ? 1 : -1);
 
 	free(image);
 	free(palp);
@@ -2694,7 +2665,7 @@ int ConvertCursor(const char* file, int pale, int cure)
 	image = (unsigned char*)calloc(sizeof(unsigned char*), w * h);
 	memcpy(image, p, w * h);
 
-	ConvertPalette(palp);
+	FixupPalette(palp, pale);
 
 	sprintf(buf, "%s/%s/%s.png", Dir, CURSOR_PATH, file);
 	CheckPath(buf);
@@ -3083,11 +3054,6 @@ static void SmsSaveAllowed(FILE* sms_c2, unsigned char* txtp)
 	fprintf(sms_c2, "\n-- Allowed units\n"\
 					"DefineAllowHumanUnits(\"FFFFFFFFFFFFFFFF\")\n"\
 					"DefineAllowOrcUnits(\"FFFFFFFFFFFFFFFF\")\n");
-	fprintf(sms_c2, "\n-- Allowed upgraded units. These are just enabled if the corresponding update is researched, anyway\n"\
-					"DefineAllow(\"unit-knight1\", \"AAAAAAAAAAAAAAAA\")\n"\
-					"DefineAllow(\"unit-knight2\", \"AAAAAAAAAAAAAAAA\")\n"\
-					"DefineAllow(\"unit-raider1\", \"AAAAAAAAAAAAAAAA\")\n"\
-					"DefineAllow(\"unit-raider2\", \"AAAAAAAAAAAAAAAA\")\n");
 	for (int race = 0; race < 2; race++) {
 		for (int f = 0; f <= MaxAllowedFeature; f++) {
 			if (IsAllowedFeature(allowid, f) && !SkipFeature(f)) {

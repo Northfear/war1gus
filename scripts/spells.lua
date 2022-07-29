@@ -81,8 +81,8 @@ local function SpellUnholyArmor(spell, unit, x, y, target)
 			DamageUnit(-1, target, 99999)
 		else
 			DamageUnit(-1, target, math.max(1, math.floor(GetUnitVariable(target, "HitPoints", "Max") / 2)))
-			SetUnitVariable(target, "UnholyArmor", 1000, "Max")
-			SetUnitVariable(target, "UnholyArmor", 1000, "Value")
+			SetUnitVariable(target, "UnholyArmor", 600, "Max")
+			SetUnitVariable(target, "UnholyArmor", 600, "Value")
 			SetUnitVariable(target, "UnholyArmor", 1, "Enable")
 		end
 	end
@@ -137,7 +137,7 @@ end
 
 DefineSpell("spell-far-seeing",
 	"showname", "Far Seeing",
-	"manacost", 70,
+	"manacost", 35,
 	"range", "infinite",
 	"target", "position",
 	"action", {{"summon", "unit-type", "unit-revealer", "time-to-live", 1000},
@@ -149,7 +149,7 @@ DefineSpell("spell-far-seeing",
 
 DefineSpell("spell-dark-vision",
 	"showname", "Dark Vision",
-	"manacost", 70,
+	"manacost", 35,
 	"range", "infinite",
 	"target", "position",
 	"action", {{"summon", "unit-type", "unit-revealer", "time-to-live", 1000},
@@ -161,7 +161,7 @@ DefineSpell("spell-dark-vision",
 
 DefineSpell("spell-healing",
 	"showname", "Healing",
-	"manacost", 1,
+	"manacost", 2,
 	"range", 8,
 	"target", "unit",
 	"repeat-cast",
@@ -201,7 +201,7 @@ DefineSpell("spell-raise-dead",
 
 DefineSpell("spell-unholy-armor",
 	"showname", "unholyarmor",
-	"manacost", 60,
+	"manacost", 55,
 	"range", 8,
 	"target", "unit",
 	"action", {{"lua-callback", SpellUnholyArmor},
@@ -221,7 +221,7 @@ DefineSpell("spell-unholy-armor",
 
 DefineSpell("spell-invisibility",
 	"showname", "invisibility",
-	"manacost", 60,
+	"manacost", 40,
 	"range", 8,
 	"target", "unit",
 	"action", {{"adjust-variable", {Invisible = 2000}},
@@ -270,7 +270,7 @@ DefineSpell("spell-summon-daemon",
 
 DefineSpell("spell-summon-scorpions",
 	"showname", "summon scorpions",
-	"manacost", 20,
+	"manacost", 30,
 	"range", 3,
 	"repeat-cast",
 	"target", "position",
@@ -287,7 +287,7 @@ DefineSpell("spell-summon-scorpions",
 
 DefineSpell("spell-summon-spiders",
 	"showname", "summon spiders",
-	"manacost", 20,
+	"manacost", 30,
 	"range", 3,
 	"repeat-cast",
 	"target", "position",
@@ -304,35 +304,68 @@ DefineSpell("spell-summon-spiders",
 
 DefineSpell("spell-poison-cloud",
 	"showname", "poison cloud",
-	"manacost", 25,
+	"manacost", 7,
 	"range", 9,
 	"repeat-cast",
 	"target", "position",
 	"action", {{"area-bombardment", "missile", "missile-poison-cloud",
-		 "fields", 5,
-		 "shards", 10,
-		 "damage", 10}},
+		 "fields", 13,
+		 "shards", 2,
+		 "damage", 6}},
 	"sound-when-cast", "blizzard",
 	"depend-upgrade", "upgrade-poison-cloud",
-    "autocast", {"range", 12, "priority", {"Priority", true}, "condition", {"opponent", "only"}, "position-autocast", SpellBlizzard},
-	"ai-cast", {"range", 12, "priority", {"Priority", true}, "condition", {"opponent", "only"}, "position-autocast", SpellBlizzard}
+    "autocast", {"range", 9, "priority", {"Priority", true}, "condition", {"opponent", "only"}, "position-autocast", SpellBlizzard},
+	"ai-cast", {"range", 9, "priority", {"Priority", true}, "condition", {"opponent", "only"}, "position-autocast", SpellBlizzard}
 )
 
 DefineSpell("spell-rain-of-fire",
 	"showname", "Rain of Fire",
-	"manacost", 25,
+	"manacost", 20,
 	"range", 9,
 	"repeat-cast",
 	"target", "position",
 	"action", {{"area-bombardment", "missile", "missile-rain-of-fire",
-		 "fields", 5,
-		 "shards", 10,
-		 "damage", 10,
+		 "fields", 8,
+		 "shards", 5,
+		 "damage", 13,
 		 --  128=4*32=4 tiles
 		 "start-offset-x", 0,
 		 "start-offset-y", -32}},
 	"sound-when-cast", "blizzard",
-	"autocast", {"range", 12, "priority", {"Priority", true}, "condition", {"opponent", "only"}, "position-autocast", SpellBlizzard},
-	"ai-cast", {"range", 12, "priority", {"Priority", true}, "condition", {"opponent", "only"}, "position-autocast", SpellBlizzard}
+	"autocast", {"range", 9, "priority", {"Priority", true}, "condition", {"opponent", "only"}, "position-autocast", SpellBlizzard},
+	"ai-cast", {"range", 9, "priority", {"Priority", true}, "condition", {"opponent", "only"}, "position-autocast", SpellBlizzard}
 )
 
+DefineSpell("spell-slow",
+	"showname", _("Slow"),
+	"manacost", 0,
+	"range", 5,
+	"target", "unit",
+	 "cooldown", 1000,
+	"action", {{"adjust-variable", {Slow = 500, Haste = 0}},
+		{"spawn-missile", "missile", "missile-web",
+			"start-point", {"base", "target"}}},
+	"condition", {
+		"Building", "false",
+		"Slow", {ExactValue = 0}},
+	"sound-when-cast", "raise dead", 
+	"autocast", {"range", 10, "condition", {"Coward", "false", "opponent", "only"}},
+	"ai-cast", {"range", 10, "combat", "only", "condition", {"Coward", "false", "opponent", "only"}}
+)
+
+DefineSpell("spell-poison",
+	"showname", _("poison"),
+	"manacost", 0,
+	"range", 1,
+	"target", "unit",
+	 "cooldown", 1000,
+	"action", {{"adjust-variable", {Poison = 500}},
+		{"spawn-missile", "missile", "missile-normal-spell",
+			"start-point", {"base", "target"}}},
+	"condition", {
+		"Building", "false",
+		"Slow", {ExactValue = 0}},
+	"sound-when-cast", "raise dead", 
+	"autocast", {"range", 10, "condition", {"Coward", "false", "opponent", "only"}},
+	"ai-cast", {"range", 10, "combat", "only", "condition", {"Coward", "false", "opponent", "only"}}
+)

@@ -45,11 +45,11 @@
 
 ; General variables
 !define NAME "War1gus"
-!define VERSION "3.1.3"
+!define VERSION "3.3.0"
 !define VIVERSION "${VERSION}.0.0"
 !define HOMEPAGE "https://github.com/wargus/war1gus"
 !define LICENSE "GPL v2"
-!define COPYRIGHT "(c) 1998-2021 by The Stratagus Project"
+!define COPYRIGHT "(c) 1998-2022 by The Stratagus Project"
 !define STRATAGUS_NAME "Stratagus"
 !define STRATAGUS_HOMEPAGE "https://github.com/wargus/stratagus"
 
@@ -82,7 +82,7 @@
 !ifdef x86_64
 ${redefine} INSTALLER "${NAME}-${VERSION}-x86_64.exe"
 ${redefine} INSTALLDIR "$PROGRAMFILES64\${NAME}\"
-${redefine} NAME "Wargus (64 bit)"
+${redefine} NAME "War1gus (64 bit)"
 ${redefine} STRATAGUS_NAME "Stratagus (64 bit)"
 ${redefine} VCREDIST "vc_redist.x64.exe"
 ${redefine} VCREDISTREGKEY "SOFTWARE\WOW6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\x64"
@@ -242,6 +242,7 @@ Section "-${NAME}"
 
         ; -- XXX TODO: include Stratagus and dependencies some better way
 	File "stratagus.exe"
+	File stratagus-midiplayer.exe
 	File "*.dll"
 
 	ClearErrors

@@ -51,7 +51,7 @@ currentRace = "human"
 war1gus.music_extension = ".mid"
 
 -- campaign detection
-war1gus.InCampaign = true
+war1gus.InCampaign = false
 
 -- unit type conversions for solo and multiplayer games
 ShouldTogglePlayerRace = {}
@@ -78,7 +78,7 @@ function CreateUnit(unittype, player, pos)
     end
 
     -- Don't add any units in 1 peasant only mode or for none-players
-    if (GameSettings.NumUnits == 1 or Players[player].Type == PlayerNobody) then
+    if (GameSettings.NumUnits ~= -1 or Players[player].Type == PlayerNobody) then
         return
     end
 
@@ -102,9 +102,9 @@ function SetPlayerData(player, data, arg1, arg2)
 
   if (data == "RaceName") then
     local oldarg1 = arg1
-    if (GameSettings.Presets[player].Race == 1) then
+    if (GameSettings.Presets[player].Race == 0) then
         arg1 = "human"
-    elseif (GameSettings.Presets[player].Race == 2) then
+    elseif (GameSettings.Presets[player].Race == 1) then
         arg1 = "orc"
     end
     DebugPrint("Preset race for player " .. player .. " is " .. GameSettings.Presets[player].Race)
@@ -116,27 +116,29 @@ function SetPlayerData(player, data, arg1, arg2)
     end
   elseif (data == "Resources") then
     local res
-    if (GameSettings.Resources == 1) then
-      res = {gold = 2000, wood = 1000}
+    if (GameSettings.Resources == 0) then
+      res = {gold = 2000, wood = 1500, lumber = 0}
+    elseif (GameSettings.Resources == 1) then
+      res = {gold = 5000, wood = 3000, lumber = 0}
     elseif (GameSettings.Resources == 2) then
-      res = {gold = 5000, wood = 2000}
-    elseif (GameSettings.Resources == 3) then
-      res = {gold = 10000, wood = 5000}
-	 elseif (GameSettings.Resources == 4) then
-      res = {gold = 30000, wood = 15000}
+      res = {gold = 10000, wood = 6000, lumber = 0}
+	 elseif (GameSettings.Resources == 3) then
+      res = {gold = 30000, wood = 15000, lumber = 0}
     end
     if res ~= nil then
-        arg2 = res[arg1]
+       arg2 = res[arg1]
     end
   end
   OldSetPlayerData(player, data, arg1, arg2)
 
   -- If this is 1 peasant mode add the peasant now
   if (data == "RaceName") then
-    if (GameSettings.NumUnits == 1) then
+    if GameSettings.NumUnits ~= -1 then
       if (player ~= 15 and Players[player].Type ~= PlayerNobody) then
         local unittype = {human = "unit-peasant", orc = "unit-peon"}
-        OldCreateUnit(unittype[arg1], player, {Players[player].StartPos.x, Players[player].StartPos.y})
+        for i=1,GameSettings.NumUnits do
+          OldCreateUnit(unittype[arg1], player, {Players[player].StartPos.x, Players[player].StartPos.y})
+        end
       end
     end
   end

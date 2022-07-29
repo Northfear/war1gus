@@ -110,8 +110,18 @@ function RunEditorMenu()
   local offy = (Video.Height - 200) / 2
 
   local buttonNewMap =
-  menu:addFullButton("~!New map", "n", offx + 96, offy + 52 + 18*3, function() RunEditorNewMapMenu(); menu:stop() end)
-  menu:addFullButton("~!Load map", "l", offx + 96, offy + 52 + 18*4, function() RunEditorLoadMapMenu(); menu:stop() end)
+  menu:addFullButton("~!New map", "n", offx + 96, offy + 52 + 18*3, function()
+    RunEditorNewMapMenu()
+    if not EditorStartedFromCommandline then
+      menu:stop()
+    end
+  end)
+  menu:addFullButton("~!Load map", "l", offx + 96, offy + 52 + 18*4, function()
+    RunEditorLoadMapMenu()
+    if not EditorStartedFromCommandline then
+      menu:stop()
+    end
+  end)
   menu:addFullButton("~!Cancel", "c", offx + 96, offy + 52 + 18*5, function() menu:stop() end)
   return menu:run()
 end
@@ -350,12 +360,16 @@ function RunInEditorMenu()
   buttonEditorLoad:setEnabled(false) -- To be removed when enabled.
 
   menu:addFullButton(
-     "E~!xit to Menu", "x", 12, 20 + 18 * 4,
-     function()
-	Load("scripts/ui.lua")
-	Editor.Running = EditorNotRunning;
-	menu:stopAll();
-     end
+    "E~!xit to Menu", "x", 12, 20 + 18 * 4,
+    function()
+      Load("scripts/ui.lua")
+      Editor.Running = EditorNotRunning
+      if EditorStartedFromCommandline then
+        menu:stop()
+      else
+        menu:stopAll()
+      end
+    end
   )
   menu:addFullButton("Return to Editor (~<Esc~>)", "escape", 12, 144 - 30, function() menu:stop() end)
 
@@ -385,7 +399,7 @@ function EditUnitProperties()
     menu:addHalfButton("~!Ok", "o", 7, sizeY - 20,
       function() GetUnitUnderCursor().Active = activeCheckBox:isMarked();  menu:stop() end)
   else
-    local resourceName = {"gold", "wood"}
+    local resourceName = {"gold", "wood", "lumber"}
     local resource = GetUnitUnderCursor().Type.GivesResource - 1
     menu:addLabel("Amount of " .. resourceName[1 + resource] .. " :", 12, 5 + 18, nil, false)
 	local resourceValue = menu:addTextInputField(GetUnitUnderCursor().ResourcesHeld, sizeX / 2 - 15, 5 + 18 * 2, 30)
