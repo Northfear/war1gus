@@ -414,9 +414,9 @@ local pixelScale = 1.0
 if preferences.OriginalPixelRatio then
    pixelScale = 1.2
 end
-if preferences.VideoWidth < 640 then
-   SetWindowSize(preferences.VideoWidth * 2, preferences.VideoHeight * 2 * pixelScale)
-end
+--if preferences.VideoWidth < 640 then
+--   SetWindowSize(preferences.VideoWidth * 2, preferences.VideoHeight * 2 * pixelScale)
+--end
 -- WC1 uses non-square pixels: graphics are 320x200, but rendered 320x240
 SetVerticalPixelSize(pixelScale)
 
